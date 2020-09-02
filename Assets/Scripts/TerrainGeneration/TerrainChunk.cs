@@ -5,19 +5,21 @@ using UnityEngine;
 
 public class TerrainChunk {
     public TerrainGenerator terrainGenerator;
-    public float[,,] heightMap;
 
     // Chunk mesh.
-    GameObject gameObject;
-    MeshFilter meshFilter;
-    MeshData meshData;
-    MeshRenderer meshRenderer;
-    MeshCollider meshCollider;
+    private GameObject gameObject;
+    private MeshFilter meshFilter;
+    private MeshRenderer meshRenderer;
+    private MeshCollider meshCollider;
 
-    Vector3 chunkPosition;
-    Bounds chunkBounds;
+    private MeshData meshData;
+    private List<Vector3Int> remarchCubePositionList;
 
-    bool meshDataReceived = false;
+    private Vector3 chunkPosition;
+    private Bounds chunkBounds;
+
+    private float[,,] heightMap;
+    private bool meshDataReceived = false;
 
     // Constructor takes in a position in the number of chunks away from (0, 0, 0), which gets scaled to world position.
     public TerrainChunk(TerrainGenerator terrainGenerator, Vector3 normalizedChunkPosition, int chunkSize, Transform parentTransform) {
@@ -45,6 +47,7 @@ public class TerrainChunk {
         meshRenderer.receiveShadows = false;
 
         // Generate and build terrain mesh.
+        remarchCubePositionList = new List<Vector3Int>();
         terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, false);
     }
 
@@ -62,16 +65,49 @@ public class TerrainChunk {
         gameObject.layer = layer;
     }
 
+    public void InputTriggered(Vector3Int cubePosition, bool place) {
+        Debug.Log("Input");
+
+        // Register input.
+        if (place) {
+            heightMap[cubePosition.x, cubePosition.y, cubePosition.z] -= 0.05f;
+
+            if (heightMap[cubePosition.x, cubePosition.y, cubePosition.z] < 0) {
+                heightMap[cubePosition.x, cubePosition.y, cubePosition.z] = 0;
+            }
+        }
+        else {
+            heightMap[cubePosition.x, cubePosition.y, cubePosition.z] += 0.05f;
+
+            if (heightMap[cubePosition.x, cubePosition.y, cubePosition.z] > 1) {
+                heightMap[cubePosition.x, cubePosition.y, cubePosition.z] = 1;
+            }
+        }
+
+        int dimension = heightMap.GetLength(0) - 1;
+
+        // Remarch all cubes within 1 block that are affected by the change.
+        for (int z = -1; z < 2; ++z) {
+            for (int y = -1; y < 2; ++y) {
+                for (int x = -1; x < 2; ++x) {
+                    Vector3Int position = cubePosition + new Vector3Int(x, y, z);
+
+                    if (position.x < dimension && position.x >= 0 && position.y < dimension && position.y >= 0 && position.z < dimension && position.z >= 0) {
+                        remarchCubePositionList.Add(position);
+                    }
+                }
+            }
+        }
+    }
+
     // Regenerate the mesh if the terrain generator or chunk size was changed.
     public void Regenerate() {
         meshDataReceived = false;
-        Debug.Log("requesting mesh");
-        terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, heightMap, false);
+        terrainGenerator.RequestMesh(OnTerrainMeshReceived, meshData, remarchCubePositionList, heightMap);
     }
 
     public void BuildMesh() {
         if (meshDataReceived) {
-            Debug.Log("building mesh");
             Mesh mesh = meshData.BuildMesh();
             meshFilter.mesh = mesh;
             meshCollider.sharedMesh = mesh;

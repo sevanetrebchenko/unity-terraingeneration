@@ -33,7 +33,7 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void Start() {
         meshDataThreadInfoQueue = new Queue<TerrainThreadData<MeshData>>();
-        chunkSize = 10;
+        chunkSize = 20;
         UpdateVisibleChunks();
     }
 
@@ -56,22 +56,6 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    public void RequestMesh(System.Action<MeshData> callback, Vector3 chunkCenter, bool terrainSmoothing) {
-        ThreadStart threadStart = delegate {
-            GenerateMesh(callback, chunkCenter, terrainSmoothing);
-        };
-
-        new Thread(threadStart).Start();
-    }
-
-    public void RequestMesh(System.Action<MeshData> callback, Vector3 chunkCenter, float[,,] heightMap, bool terrainSmoothing) {
-        ThreadStart threadStart = delegate {
-            GenerateMesh(callback, chunkCenter, heightMap, terrainSmoothing);
-        };
-
-        new Thread(threadStart).Start();
-    }
-
     public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place) {
         Debug.Log("Chunk world position: " + objectTransform.position);
         Vector3 relativeObjectPosition = objectTransform.position - transform.position;
@@ -84,28 +68,39 @@ public class TerrainGenerator : MonoBehaviour {
         Debug.Log("Normalized chunk hit world position: " + normalizedHitPosition);
 
         if (terrainChunks.ContainsKey(normalizedObjectPosition)) {
-            TerrainChunk chunkHit = terrainChunks[normalizedObjectPosition];
-            float[,,] heightMap = chunkHit.heightMap;
-
-            if (place) {
-                heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] -= 1.0f;
-
-                if (heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] < 0) {
-                    heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] = 0;
-                }
-            }
-            else {
-                heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] += 1.0f;
-
-                if (heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] > 1) {
-                    heightMap[normalizedHitPosition.x, normalizedHitPosition.y, normalizedHitPosition.z] = 1;
-                }
-            }
-
-            Debug.Log("regenerating mesh");
-            chunkHit.Regenerate();
+            TerrainChunk hitChunk = terrainChunks[normalizedObjectPosition];
+            hitChunk.InputTriggered(normalizedHitPosition, place);
+            hitChunk.Regenerate();
         }
     }
+
+    // Generate a default chunk using chunk position.
+    public void RequestMesh(System.Action<MeshData> callback, Vector3 chunkCenter, bool terrainSmoothing) {
+        ThreadStart threadStart = delegate {
+            GenerateMesh(callback, chunkCenter, terrainSmoothing);
+        };
+
+        new Thread(threadStart).Start();
+    }
+
+    // Generate a default chunk using a pre-made height map.
+    public void RequestMesh(System.Action<MeshData> callback, Vector3 chunkCenter, float[,,] heightMap, bool terrainSmoothing) {
+        ThreadStart threadStart = delegate {
+            GenerateMesh(callback, chunkCenter, heightMap, terrainSmoothing);
+        };
+
+        new Thread(threadStart).Start();
+    }
+
+    // Generate a modified chunk (terrain edits).
+    public void RequestMesh(System.Action<MeshData> callback, MeshData meshData, List<Vector3Int> positionsToRemarch, float[,,] heightMap) {
+        ThreadStart threadStart = delegate {
+            GenerateMesh(callback, meshData, positionsToRemarch, heightMap);
+        };
+
+        new Thread(threadStart).Start();
+    }
+
 
     private void GenerateMesh(System.Action<MeshData> callback, Vector3 chunkCenter, bool terrainSmoothing) {
         // Generate components.
@@ -125,6 +120,15 @@ public class TerrainGenerator : MonoBehaviour {
         // Emplace in queue.
         lock (meshDataThreadInfoQueue) {
             meshDataThreadInfoQueue.Enqueue(new TerrainThreadData<MeshData>(callback, generatedMesh));
+        }
+    }
+
+    private void GenerateMesh(System.Action<MeshData> callback, MeshData meshData, List<Vector3Int> cubePositionsToRemarch, float[,,] heightMap) {
+        MarchingCubesMeshGenerator.RegenerateTerrainMesh(meshData, cubePositionsToRemarch, heightMap);
+
+        // Emplace in queue.
+        lock (meshDataThreadInfoQueue) {
+            meshDataThreadInfoQueue.Enqueue(new TerrainThreadData<MeshData>(callback, meshData));
         }
     }
 

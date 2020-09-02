@@ -6,25 +6,24 @@ public class Cube {
     public int[] triangleIndices;
     public Color[] colors;
     public Vector3Int normalizedCubePosition; // Position relative to the parent transform.
+    public float[] cubeCornerNoiseValues;
 
     public int numElements;
 
     // Marching cubes data.
-    private float[] cubeCornerNoiseValues;
     private int configurationIndex;
     private Color terrainColor;
 
-    public Cube(float[,,] noiseMap, Vector3Int normalizedCubePosition, Color terrainColor) {
+    public Cube(Vector3Int normalizedCubePosition, Color terrainColor) {
         // Any marching cubes configuration has maximum 5 triangles (15 vertices).
         vertices = new Vector3[maxNumberVertices];
         triangleIndices = new int[maxNumberVertices];
         colors = new Color[maxNumberVertices];
         this.terrainColor = terrainColor;
+        cubeCornerNoiseValues = new float[MarchingCubesConfiguration.cornerTable.Length];
 
         this.normalizedCubePosition = normalizedCubePosition;
         numElements = 0;
-
-        ConstructCubeCorners(noiseMap);
     }
 
     public void GenerateCubeMeshData(bool terrainSmoothing, float surfaceLevel) {
@@ -77,10 +76,6 @@ public class Cube {
         }
 	}
     
-    public void SetTriangleIndex(int arrayIndex, int triangleIndex) {
-        triangleIndices[arrayIndex] = triangleIndex;
-    }
-
     private void GetCubeConfiguration(float surfaceLevel) {
         configurationIndex = 0;
         for (int i = 0; i < 8; ++i) {
@@ -89,15 +84,4 @@ public class Cube {
             }
         }
     }
-
-    private void ConstructCubeCorners(float[,,] noiseMap) {
-        cubeCornerNoiseValues = new float[MarchingCubesConfiguration.cornerTable.Length];
-
-        // Get 8 cube corners.
-        for (int i = 0; i < 8; ++i) {
-            Vector3Int cubeCorner = normalizedCubePosition + MarchingCubesConfiguration.cornerTable[i];
-            cubeCornerNoiseValues[i] = noiseMap[cubeCorner.x, cubeCorner.y, cubeCorner.z];
-        }
-    }
-
 }

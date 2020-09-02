@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class MarchingCubesMeshGenerator {
 
@@ -10,4 +11,9 @@ public static class MarchingCubesMeshGenerator {
 
 		return new MeshData(width - 1, height - 1, depth - 1, noiseMap, terrainColor, surfaceLevel, terrainSmoothing);
 	}
+
+	public static void RegenerateTerrainMesh(MeshData meshData, List<Vector3Int> cubePositionsToRemarch, float[,,] heightMap) {
+		meshData.heightMap = heightMap;
+		meshData.RegenerateCubes(cubePositionsToRemarch);
+    }
 }

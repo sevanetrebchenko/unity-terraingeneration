@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class MeshData {
 	// PUBLIC
@@ -14,6 +15,8 @@ public class MeshData {
 	private int heightInCubes;
 	private int depthInCubes;
 
+	private Mesh mesh;
+
 	public MeshData(int widthInCubes, int heightInCubes, int depthInCubes, float[,,] heightMap, Color terrainColor, float surfaceLevel, bool terrainSmoothing) {
 		this.widthInCubes = widthInCubes;
 		this.heightInCubes = heightInCubes;
@@ -27,9 +30,8 @@ public class MeshData {
 		ConstructCubes();
 	}
 
-	// Build the mesh up until the provided number of cubes. If the number of cubes is -1, build the entire mesh.
 	public Mesh BuildMesh() {
-		Mesh mesh = new Mesh();
+		mesh = new Mesh();
 		int meshSize = CalculateMeshTriangleSize();
 
 		// Allocate triangle, index, and color buffers for mesh.
@@ -46,6 +48,17 @@ public class MeshData {
 		return mesh;
 	}
 
+	public void RegenerateCubes(List<Vector3Int> cubePositionsToRemarch) {
+		foreach (Vector3Int cubePosition in cubePositionsToRemarch) {
+			Cube cube = new Cube(cubePosition, terrainColor);
+			ConstructCubeCorners(cube);
+			cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
+			cubes[cubePosition.x, cubePosition.y, cubePosition.z] = cube;
+		}
+
+		cubePositionsToRemarch.Clear();
+    }
+
 	private void ConstructCubes() {
 		// March cubes through the entire volume.
 		for (int y = 0; y < heightInCubes; ++y) {
@@ -53,12 +66,23 @@ public class MeshData {
 				for (int z = 0; z < depthInCubes; ++z) {
 					// Generate a cube at the given (x, y, z) position.
 					Vector3Int cubePosition = new Vector3Int(x, y, z);
-					Cube cube = new Cube(heightMap, cubePosition, terrainColor);
+
+					// Construct cube
+					Cube cube = new Cube(cubePosition, terrainColor);
+					ConstructCubeCorners(cube);
 					cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
 
 					cubes[x, y, z] = cube;
 				}
 			}
+		}
+	}
+
+	private void ConstructCubeCorners(Cube cube) {
+		// Get 8 cube corners.
+		for (int i = 0; i < 8; ++i) {
+			Vector3Int cubeCorner = cube.normalizedCubePosition + MarchingCubesConfiguration.cornerTable[i];
+			cube.cubeCornerNoiseValues[i] = heightMap[cubeCorner.x, cubeCorner.y, cubeCorner.z];
 		}
 	}
 
@@ -84,7 +108,7 @@ public class MeshData {
 				meshColors[currentMeshIndex] = cube.colors[i];
 
 				// Update triangle index of cube relative to all other cubes.
-				cube.SetTriangleIndex(i, currentMeshIndex);
+				cube.triangleIndices[i] = currentMeshIndex;
 				++currentMeshIndex;
 			}
 		}
