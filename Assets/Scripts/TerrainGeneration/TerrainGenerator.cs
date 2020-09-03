@@ -33,7 +33,7 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void Start() {
         meshDataThreadInfoQueue = new Queue<TerrainThreadData<MeshData>>();
-        chunkSize = 20;
+        chunkSize = 15;
         UpdateVisibleChunks();
     }
 
@@ -57,15 +57,11 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place) {
-        Debug.Log("Chunk world position: " + objectTransform.position);
         Vector3 relativeObjectPosition = objectTransform.position - transform.position;
         Vector3Int normalizedObjectPosition = new Vector3Int(Mathf.RoundToInt(relativeObjectPosition.x), Mathf.RoundToInt(relativeObjectPosition.y), Mathf.RoundToInt(relativeObjectPosition.z)) / (chunkSize - 1);
-        Debug.Log("Normalized chunk world position: " + normalizedObjectPosition);
 
         Vector3 relativeHitLocation = hitPoint - transform.position - objectTransform.position;
-        Debug.Log("Chunk hit world position: " + relativeHitLocation);
         Vector3Int normalizedHitPosition = new Vector3Int(Mathf.RoundToInt(relativeHitLocation.x), Mathf.RoundToInt(relativeHitLocation.y), Mathf.RoundToInt(relativeHitLocation.z));
-        Debug.Log("Normalized chunk hit world position: " + normalizedHitPosition);
 
         if (terrainChunks.ContainsKey(normalizedObjectPosition)) {
             TerrainChunk hitChunk = terrainChunks[normalizedObjectPosition];

@@ -48,7 +48,7 @@ public class TerrainChunk {
 
         // Generate and build terrain mesh.
         remarchCubePositionList = new List<Vector3Int>();
-        terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, false);
+        terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, true);
     }
 
     public void UpdateTerrainChunk(Vector3 viewerPosition, float maxViewDistance) {
@@ -66,7 +66,6 @@ public class TerrainChunk {
     }
 
     public void InputTriggered(Vector3Int cubePosition, bool place) {
-        Debug.Log("Input");
 
         // Register input.
         if (place) {

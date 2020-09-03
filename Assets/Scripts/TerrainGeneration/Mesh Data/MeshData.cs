@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MeshData {
@@ -16,6 +17,7 @@ public class MeshData {
 	private int depthInCubes;
 
 	private Mesh mesh;
+	private int meshSize;
 
 	public MeshData(int widthInCubes, int heightInCubes, int depthInCubes, float[,,] heightMap, Color terrainColor, float surfaceLevel, bool terrainSmoothing) {
 		this.widthInCubes = widthInCubes;
@@ -32,7 +34,6 @@ public class MeshData {
 
 	public Mesh BuildMesh() {
 		mesh = new Mesh();
-		int meshSize = CalculateMeshTriangleSize();
 
 		// Allocate triangle, index, and color buffers for mesh.
 		Vector3[] meshVertices = new Vector3[meshSize];
@@ -49,17 +50,25 @@ public class MeshData {
 	}
 
 	public void RegenerateCubes(List<Vector3Int> cubePositionsToRemarch) {
+
 		foreach (Vector3Int cubePosition in cubePositionsToRemarch) {
+			int previousNumElements = cubes[cubePosition.x, cubePosition.y, cubePosition.z].numElements;
+
 			Cube cube = new Cube(cubePosition, terrainColor);
 			ConstructCubeCorners(cube);
 			cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
 			cubes[cubePosition.x, cubePosition.y, cubePosition.z] = cube;
+
+			// If this current configuration has more mesh elements, make sure to update the count.
+			meshSize += Mathf.Max(0, cube.numElements - previousNumElements);
 		}
 
 		cubePositionsToRemarch.Clear();
     }
 
 	private void ConstructCubes() {
+		meshSize = 0;
+
 		// March cubes through the entire volume.
 		for (int y = 0; y < heightInCubes; ++y) {
 			for (int x = 0; x < widthInCubes; ++x) {
@@ -71,6 +80,7 @@ public class MeshData {
 					Cube cube = new Cube(cubePosition, terrainColor);
 					ConstructCubeCorners(cube);
 					cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
+					meshSize += cube.numElements;
 
 					cubes[x, y, z] = cube;
 				}
@@ -84,16 +94,6 @@ public class MeshData {
 			Vector3Int cubeCorner = cube.normalizedCubePosition + MarchingCubesConfiguration.cornerTable[i];
 			cube.cubeCornerNoiseValues[i] = heightMap[cubeCorner.x, cubeCorner.y, cubeCorner.z];
 		}
-	}
-
-	private int CalculateMeshTriangleSize() {
-		int meshSize = 0;
-
-		foreach(Cube cube in cubes) {
-			meshSize += cube.numElements;
-        }
-
-		return meshSize;
 	}
 
 	private void TransferCubeData(Vector3[] meshVertices, int[] meshTriangles, Color[] meshColors) {

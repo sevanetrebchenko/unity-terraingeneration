@@ -7,13 +7,14 @@ public class MouseLook : MonoBehaviour {
 
     private float xRotation = 0.0f;
     private Camera cam;
+    private float miningTimer = 0.05f;
 
-    void Start() {
+    private void Start() {
         Cursor.lockState = CursorLockMode.Locked;
         cam = GetComponent<Camera>();
     }
 
-    void Update() {
+    private void Update() {
         // Rotate independent of frame rate.
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
@@ -24,20 +25,32 @@ public class MouseLook : MonoBehaviour {
         transform.localRotation = Quaternion.Euler(xRotation, 0.0f, 0.0f); // Rotate around the x axis.
         playerBody.Rotate(Vector3.up * mouseX);
 
+        miningTimer -= Time.deltaTime;
+
         // Mouse input.
-        if (Input.GetMouseButtonDown(0)) {
-            RaycastHit hit;
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit)) {
-                terrainGenerator.ReceiveClick(hit.transform, hit.point, true);
+        if (Input.GetMouseButton(0)) {
+            if (miningTimer < 0) {
+                RaycastHit hit;
+
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit)) {
+                    terrainGenerator.ReceiveClick(hit.transform, hit.point, true);
+                }
+
+                miningTimer = 0.1f;
             }
         }
 
-        if (Input.GetMouseButtonDown(1)) {
-            RaycastHit hit;
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit)) {
-                terrainGenerator.ReceiveClick(hit.transform, hit.point, false);
+        if (Input.GetMouseButton(1)) {
+            if (miningTimer < 0) {
+                RaycastHit hit;
+
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit)) {
+                    terrainGenerator.ReceiveClick(hit.transform, hit.point, false);
+                }
+
+                miningTimer = 0.1f;
             }
         }
     }
