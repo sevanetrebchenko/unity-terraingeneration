@@ -57,7 +57,10 @@ public class MeshData {
 			Cube cube = new Cube(cubePosition, terrainColor);
 			ConstructCubeCorners(cube);
 			cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
-			cubes[cubePosition.x, cubePosition.y, cubePosition.z] = cube;
+
+			lock (cubes) {
+				cubes[cubePosition.x, cubePosition.y, cubePosition.z] = cube;
+			}
 
 			// If this current configuration has more mesh elements, make sure to update the count.
 			meshSize += Mathf.Max(0, cube.numElements - previousNumElements);

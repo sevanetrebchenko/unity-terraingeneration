@@ -33,7 +33,7 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void Start() {
         meshDataThreadInfoQueue = new Queue<TerrainThreadData<MeshData>>();
-        chunkSize = 15;
+        chunkSize = 20;
         UpdateVisibleChunks();
     }
 
@@ -56,7 +56,7 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place) {
+    public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place, float miningRadius) {
         Vector3 relativeObjectPosition = objectTransform.position - transform.position;
         Vector3Int normalizedObjectPosition = new Vector3Int(Mathf.RoundToInt(relativeObjectPosition.x), Mathf.RoundToInt(relativeObjectPosition.y), Mathf.RoundToInt(relativeObjectPosition.z)) / (chunkSize - 1);
 
@@ -65,7 +65,7 @@ public class TerrainGenerator : MonoBehaviour {
 
         if (terrainChunks.ContainsKey(normalizedObjectPosition)) {
             TerrainChunk hitChunk = terrainChunks[normalizedObjectPosition];
-            hitChunk.InputTriggered(normalizedHitPosition, place);
+            hitChunk.InputTriggered(normalizedHitPosition, place, miningRadius);
             hitChunk.Regenerate();
         }
     }

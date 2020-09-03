@@ -7,7 +7,10 @@ public class MouseLook : MonoBehaviour {
 
     private float xRotation = 0.0f;
     private Camera cam;
-    private float miningTimer = 0.05f;
+
+    public float miningTimerFinal = 0.5f;
+    private float miningTimer = 0.5f;
+    public float miningRadius = 1.0f;
 
     private void Start() {
         Cursor.lockState = CursorLockMode.Locked;
@@ -34,10 +37,10 @@ public class MouseLook : MonoBehaviour {
 
                 Ray ray = cam.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit)) {
-                    terrainGenerator.ReceiveClick(hit.transform, hit.point, true);
+                    terrainGenerator.ReceiveClick(hit.transform, hit.point, true, miningRadius);
                 }
 
-                miningTimer = 0.1f;
+                miningTimer = miningTimerFinal;
             }
         }
 
@@ -47,10 +50,10 @@ public class MouseLook : MonoBehaviour {
 
                 Ray ray = cam.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit)) {
-                    terrainGenerator.ReceiveClick(hit.transform, hit.point, false);
+                    terrainGenerator.ReceiveClick(hit.transform, hit.point, false, miningRadius);
                 }
 
-                miningTimer = 0.1f;
+                miningTimer = miningTimerFinal;
             }
         }
     }

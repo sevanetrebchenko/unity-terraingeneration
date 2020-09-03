@@ -65,35 +65,38 @@ public class TerrainChunk {
         gameObject.layer = layer;
     }
 
-    public void InputTriggered(Vector3Int cubePosition, bool place) {
+    public void InputTriggered(Vector3Int cubePosition, bool place, float miningRadius) {
+        int width = heightMap.GetLength(0) - 1;
+        int height = heightMap.GetLength(1) - 1;
+        int depth = heightMap.GetLength(2) - 1;
 
-        // Register input.
-        if (place) {
-            heightMap[cubePosition.x, cubePosition.y, cubePosition.z] -= 0.05f;
+        for (int z = 0; z < depth; ++z) {
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    Vector3Int position = new Vector3Int(x, y, z);
+                    float distance = Vector3.Distance(cubePosition, position);
 
-            if (heightMap[cubePosition.x, cubePosition.y, cubePosition.z] < 0) {
-                heightMap[cubePosition.x, cubePosition.y, cubePosition.z] = 0;
-            }
-        }
-        else {
-            heightMap[cubePosition.x, cubePosition.y, cubePosition.z] += 0.05f;
+                    if (distance <= miningRadius) {
+                        float terrainValue = Mathf.Lerp(0.05f, 0.001f, distance / miningRadius);
 
-            if (heightMap[cubePosition.x, cubePosition.y, cubePosition.z] > 1) {
-                heightMap[cubePosition.x, cubePosition.y, cubePosition.z] = 1;
-            }
-        }
+                        if (place) {
+                            heightMap[position.x, position.y, position.z] -= terrainValue;
 
-        int dimension = heightMap.GetLength(0) - 1;
+                            if (heightMap[position.x, position.y, position.z] < 0) {
+                                heightMap[position.x, position.y, position.z] = 0;
+                            }
+                        }
+                        else {
+                            heightMap[position.x, position.y, position.z] += terrainValue;
 
-        // Remarch all cubes within 1 block that are affected by the change.
-        for (int z = -1; z < 2; ++z) {
-            for (int y = -1; y < 2; ++y) {
-                for (int x = -1; x < 2; ++x) {
-                    Vector3Int position = cubePosition + new Vector3Int(x, y, z);
+                            if (heightMap[position.x, position.y, position.z] > 1) {
+                                heightMap[position.x, position.y, position.z] = 1;
+                            }
+                        }
 
-                    if (position.x < dimension && position.x >= 0 && position.y < dimension && position.y >= 0 && position.z < dimension && position.z >= 0) {
                         remarchCubePositionList.Add(position);
                     }
+
                 }
             }
         }
