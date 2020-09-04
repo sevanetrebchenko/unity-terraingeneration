@@ -10,7 +10,7 @@ public class TerrainGenerator : MonoBehaviour {
     public Transform viewer;
 
     public int chunkSize;
-    public int numVisibleChunks = 1;
+
     public float surfaceLevel = 0.5f;
     public Color terrainColor = Color.white;
     public float noiseScale = 40.0f;
@@ -22,11 +22,11 @@ public class TerrainGenerator : MonoBehaviour {
     public float lacunarity = 4.0f;
     public int terrainSeed = 0;
     public Vector3 terrainOffset = Vector3.zero;
+    public bool terrainSmoothing = false;
 
     // PRIVATE
-    private Vector3 oldViewerPosition;
-    private const float moveThresholdForChunkUpdate = 50.0f;
-    private const float moveThresholdForChunkUpdateSquared = moveThresholdForChunkUpdate * moveThresholdForChunkUpdate;
+    private int numVisibleChunks;
+
     private Queue<TerrainThreadData<MeshData>> meshDataThreadInfoQueue;
 
     private Dictionary<Vector3Int, TerrainChunk> terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
@@ -42,7 +42,8 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void Start() {
         meshDataThreadInfoQueue = new Queue<TerrainThreadData<MeshData>>();
-        chunkSize = 20;
+        chunkSize = 21;
+        numVisibleChunks = 2;
         UpdateVisibleChunks();
     }
 
@@ -55,17 +56,11 @@ public class TerrainGenerator : MonoBehaviour {
             }
         }
 
-        // Update viewer position and regenerate chunks if necessary.
-        Vector3 viewerPosition = new Vector3(viewer.position.x, viewer.position.y, viewer.position.z);
-
-        // Only update if the viewer has moved past a certain location (prevents updates every frame).
-        if ((oldViewerPosition - viewerPosition).sqrMagnitude > moveThresholdForChunkUpdateSquared) {
-            oldViewerPosition = viewerPosition;
-            UpdateVisibleChunks();
-        }
+        UpdateVisibleChunks();
     }
 
     public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place, int miningRadius) {
+        Debug.Log("Input");
         Vector3 relativeObjectPosition = objectTransform.position - transform.position;
         Vector3Int normalizedObjectPosition = new Vector3Int(Mathf.RoundToInt(relativeObjectPosition.x), Mathf.RoundToInt(relativeObjectPosition.y), Mathf.RoundToInt(relativeObjectPosition.z)) / (chunkSize - 1);
 
@@ -156,8 +151,8 @@ public class TerrainGenerator : MonoBehaviour {
 
         // Get the current viewer position.
         int currentChunkCoordX = Mathf.RoundToInt(viewer.position.x / chunkSize);
-        int currentChunkCoordY = Mathf.RoundToInt(viewer.position.x / chunkSize);
-        int currentChunkCoordZ = Mathf.RoundToInt(viewer.position.x / chunkSize);
+        int currentChunkCoordY = Mathf.RoundToInt(viewer.position.y / chunkSize);
+        int currentChunkCoordZ = Mathf.RoundToInt(viewer.position.z / chunkSize);
 
         for (int yOffset = -numVisibleChunks; yOffset <= numVisibleChunks; yOffset++) {
             for (int xOffset = -numVisibleChunks; xOffset <= numVisibleChunks; xOffset++) {
@@ -167,18 +162,17 @@ public class TerrainGenerator : MonoBehaviour {
                     // Terrain chunk exists already.
                     if (terrainChunks.ContainsKey(viewedChunkCoord)) {
                         // Update terrain chunk to recalculate visibility.
-                        terrainChunks[viewedChunkCoord].UpdateTerrainChunk(viewer.position, 50);
+                        terrainChunks[viewedChunkCoord].UpdateTerrainChunk(viewer.position, numVisibleChunks * chunkSize);
 
                         // If the terrain chunk is visible, add it to the previousFrameTerrain chunks.
                         if (terrainChunks[viewedChunkCoord].IsVisible()) {
-                            terrainChunks[viewedChunkCoord].Regenerate();
                             previousFrameTerrainChunks.Add(terrainChunks[viewedChunkCoord]);
                         }
                     }
                     // Terrain chunk does not exist, generate a new one.
                     else {
                         // Terrain chunk does not need to be updated as it is always going to be visible upon creation.
-                        TerrainChunk chunk = new TerrainChunk(this, viewedChunkCoord, chunkSize - 1, transform);
+                        TerrainChunk chunk = new TerrainChunk(this, viewedChunkCoord, chunkSize - 1, transform, terrainSmoothing);
                         chunk.SetLayer(gameObject.layer);
                         terrainChunks.Add(viewedChunkCoord, chunk);
                     }

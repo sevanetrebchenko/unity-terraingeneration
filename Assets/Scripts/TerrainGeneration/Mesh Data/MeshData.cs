@@ -105,20 +105,14 @@ public class MeshData {
 		foreach(Cube cube in cubes) {
 			// Copy all vertices and set triangle indices.
 			for (int i = 0; i < cube.numElements; ++i) {
-				try {
-					// Set vertex and triangle index in mesh array.
-					meshVertices[currentMeshIndex] = cube.vertices[i];
-					meshTriangles[currentMeshIndex] = currentMeshIndex;
-					meshColors[currentMeshIndex] = cube.colors[i];
+				// Set vertex and triangle index in mesh array.
+				meshVertices[currentMeshIndex] = cube.vertices[i];
+				meshTriangles[currentMeshIndex] = currentMeshIndex;
+				meshColors[currentMeshIndex] = cube.colors[i];
 
-					// Update triangle index of cube relative to all other cubes.
-					cube.triangleIndices[i] = currentMeshIndex;
-					++currentMeshIndex;
-				}
-				catch (IndexOutOfRangeException e) {
-					Debug.Log("MeshSize: " + meshSize + ", Current index: " + currentMeshIndex);
-					Debug.Log(e);
-                }
+				// Update triangle index of cube relative to all other cubes.
+				cube.triangleIndices[i] = currentMeshIndex;
+				++currentMeshIndex;
 			}
 		}
 	}

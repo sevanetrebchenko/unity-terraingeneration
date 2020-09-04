@@ -154,7 +154,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewer: {fileID: 1974001242}
   chunkSize: 0
-  numVisibleChunks: 1
   surfaceLevel: 0.5
   terrainColor: {r: 1, g: 1, b: 1, a: 1}
   noiseScale: 40
@@ -163,6 +162,7 @@ MonoBehaviour:
   lacunarity: 4
   terrainSeed: 0
   terrainOffset: {x: 0, y: 0, z: 0}
+  terrainSmoothing: 0
 --- !u!4 &197580646
 Transform:
   m_ObjectHideFlags: 0
@@ -444,7 +444,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -452,7 +452,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalRotation.x

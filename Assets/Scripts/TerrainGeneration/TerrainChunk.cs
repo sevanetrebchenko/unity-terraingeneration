@@ -22,7 +22,7 @@ public class TerrainChunk {
     private bool meshDataReceived = false;
 
     // Constructor takes in a position in the number of chunks away from (0, 0, 0), which gets scaled to world position.
-    public TerrainChunk(TerrainGenerator terrainGenerator, Vector3 normalizedChunkPosition, int chunkSize, Transform parentTransform) {
+    public TerrainChunk(TerrainGenerator terrainGenerator, Vector3 normalizedChunkPosition, int chunkSize, Transform parentTransform, bool terrainSmoothing) {
         this.terrainGenerator = terrainGenerator;
         chunkPosition = normalizedChunkPosition * chunkSize;
         this.chunkSize = chunkSize;
@@ -49,15 +49,15 @@ public class TerrainChunk {
 
         // Generate and build terrain mesh.
         remarchCubePositionList = new HashSet<Vector3Int>();
-        terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, true);
+        terrainGenerator.RequestMesh(OnTerrainMeshReceived, chunkPosition, terrainSmoothing);
     }
 
     public void UpdateTerrainChunk(Vector3 viewerPosition, float maxViewDistance) {
         // Calculate the closest point on the chunk bounding cube to the position of the viewer.
-        float distanceToNearestPoint = Mathf.Sqrt(chunkBounds.SqrDistance(viewerPosition));
+        float distanceToNearestPointSquared = chunkBounds.SqrDistance(viewerPosition);
 
         // The chunk is visible if the closest point on this chunk is within the maximum viewer view distance.
-        bool chunkIsVisible = distanceToNearestPoint <= maxViewDistance;
+        bool chunkIsVisible = distanceToNearestPointSquared <= (maxViewDistance * maxViewDistance);
 
         SetVisible(chunkIsVisible);
     }
@@ -89,7 +89,7 @@ public class TerrainChunk {
 
     public void InputTriggered(Vector3Int hitCubePosition, bool place, int miningRadius) {
 
-        int numCubesPerSide = chunkSize - 1;
+        int numCubesPerSide = chunkSize;
 
         for (int z = 0; z < numCubesPerSide; ++z) {
             for (int y = 0; y < numCubesPerSide; ++y) {
