@@ -49,21 +49,21 @@ public class MeshData {
 		return mesh;
 	}
 
-	public void RegenerateCubes(List<Vector3Int> cubePositionsToRemarch) {
+	public void RegenerateCubes(HashSet<Vector3Int> cubePositionsToRemarch) {
 
 		foreach (Vector3Int cubePosition in cubePositionsToRemarch) {
-			int previousNumElements = cubes[cubePosition.x, cubePosition.y, cubePosition.z].numElements;
 
 			Cube cube = new Cube(cubePosition, terrainColor);
 			ConstructCubeCorners(cube);
 			cube.GenerateCubeMeshData(terrainSmoothing, surfaceLevel);
 
 			lock (cubes) {
+				int previousNumElements = cubes[cubePosition.x, cubePosition.y, cubePosition.z].numElements;
 				cubes[cubePosition.x, cubePosition.y, cubePosition.z] = cube;
+				// Update the count of mesh elements to reflect new terrain configuration.
+				// Could have less or more vertices.
+				meshSize += cube.numElements - previousNumElements;
 			}
-
-			// If this current configuration has more mesh elements, make sure to update the count.
-			meshSize += Mathf.Max(0, cube.numElements - previousNumElements);
 		}
 
 		cubePositionsToRemarch.Clear();
@@ -105,14 +105,20 @@ public class MeshData {
 		foreach(Cube cube in cubes) {
 			// Copy all vertices and set triangle indices.
 			for (int i = 0; i < cube.numElements; ++i) {
-				// Set vertex and triangle index in mesh array.
-				meshVertices[currentMeshIndex] = cube.vertices[i];
-				meshTriangles[currentMeshIndex] = currentMeshIndex;
-				meshColors[currentMeshIndex] = cube.colors[i];
+				try {
+					// Set vertex and triangle index in mesh array.
+					meshVertices[currentMeshIndex] = cube.vertices[i];
+					meshTriangles[currentMeshIndex] = currentMeshIndex;
+					meshColors[currentMeshIndex] = cube.colors[i];
 
-				// Update triangle index of cube relative to all other cubes.
-				cube.triangleIndices[i] = currentMeshIndex;
-				++currentMeshIndex;
+					// Update triangle index of cube relative to all other cubes.
+					cube.triangleIndices[i] = currentMeshIndex;
+					++currentMeshIndex;
+				}
+				catch (IndexOutOfRangeException e) {
+					Debug.Log("MeshSize: " + meshSize + ", Current index: " + currentMeshIndex);
+					Debug.Log(e);
+                }
 			}
 		}
 	}

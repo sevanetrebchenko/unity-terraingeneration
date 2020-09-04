@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 
 [System.Serializable]
@@ -31,6 +32,14 @@ public class TerrainGenerator : MonoBehaviour {
     private Dictionary<Vector3Int, TerrainChunk> terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
     private List<TerrainChunk> previousFrameTerrainChunks = new List<TerrainChunk>();
 
+    /*
+    private void OnDrawGizmosSelected() {
+        foreach (KeyValuePair<Vector3Int, TerrainChunk> chunkData in terrainChunks) {
+            chunkData.Value.DebugDraw(surfaceLevel);
+        }
+    }
+    */
+
     private void Start() {
         meshDataThreadInfoQueue = new Queue<TerrainThreadData<MeshData>>();
         chunkSize = 20;
@@ -56,7 +65,7 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place, float miningRadius) {
+    public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place, int miningRadius) {
         Vector3 relativeObjectPosition = objectTransform.position - transform.position;
         Vector3Int normalizedObjectPosition = new Vector3Int(Mathf.RoundToInt(relativeObjectPosition.x), Mathf.RoundToInt(relativeObjectPosition.y), Mathf.RoundToInt(relativeObjectPosition.z)) / (chunkSize - 1);
 
@@ -89,7 +98,7 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     // Generate a modified chunk (terrain edits).
-    public void RequestMesh(System.Action<MeshData> callback, MeshData meshData, List<Vector3Int> positionsToRemarch, float[,,] heightMap) {
+    public void RequestMesh(System.Action<MeshData> callback, MeshData meshData, HashSet<Vector3Int> positionsToRemarch, float[,,] heightMap) {
         ThreadStart threadStart = delegate {
             GenerateMesh(callback, meshData, positionsToRemarch, heightMap);
         };
@@ -119,7 +128,7 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    private void GenerateMesh(System.Action<MeshData> callback, MeshData meshData, List<Vector3Int> cubePositionsToRemarch, float[,,] heightMap) {
+    private void GenerateMesh(System.Action<MeshData> callback, MeshData meshData, HashSet<Vector3Int> cubePositionsToRemarch, float[,,] heightMap) {
         MarchingCubesMeshGenerator.RegenerateTerrainMesh(meshData, cubePositionsToRemarch, heightMap);
 
         // Emplace in queue.

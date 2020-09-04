@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 public class MouseLook : MonoBehaviour {
     public float mouseSensitivity = 100.0f;
@@ -8,13 +9,14 @@ public class MouseLook : MonoBehaviour {
     private float xRotation = 0.0f;
     private Camera cam;
 
-    public float miningTimerFinal = 0.5f;
-    private float miningTimer = 0.5f;
-    public float miningRadius = 1.0f;
+    [Range(1, 5)]
+    public int miningRadius;
 
     private void Start() {
         Cursor.lockState = CursorLockMode.Locked;
         cam = GetComponent<Camera>();
+
+        miningRadius = 3;
     }
 
     private void Update() {
@@ -28,32 +30,22 @@ public class MouseLook : MonoBehaviour {
         transform.localRotation = Quaternion.Euler(xRotation, 0.0f, 0.0f); // Rotate around the x axis.
         playerBody.Rotate(Vector3.up * mouseX);
 
-        miningTimer -= Time.deltaTime;
-
         // Mouse input.
-        if (Input.GetMouseButton(0)) {
-            if (miningTimer < 0) {
-                RaycastHit hit;
+        if (Input.GetMouseButtonDown(0)) {
+            RaycastHit hit;
 
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit)) {
-                    terrainGenerator.ReceiveClick(hit.transform, hit.point, true, miningRadius);
-                }
-
-                miningTimer = miningTimerFinal;
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit)) {
+                terrainGenerator.ReceiveClick(hit.transform, hit.point, true, miningRadius);
             }
         }
 
-        if (Input.GetMouseButton(1)) {
-            if (miningTimer < 0) {
-                RaycastHit hit;
+        if (Input.GetMouseButtonDown(1)) {
+            RaycastHit hit;
 
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit)) {
-                    terrainGenerator.ReceiveClick(hit.transform, hit.point, false, miningRadius);
-                }
-
-                miningTimer = miningTimerFinal;
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit)) {
+                terrainGenerator.ReceiveClick(hit.transform, hit.point, false, miningRadius);
             }
         }
     }
