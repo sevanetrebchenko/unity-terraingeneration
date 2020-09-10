@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\sevan\AppData\Local\JetBrains\Rider2020.2\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\sevan\AppData\Local\JetBrains\Rider2020.2\resharper-host\Local\Transient\Rider\v202\SolutionCaches\_TerrainGeneration.2037909101.00" t="ExcludeRecursive" />
+    <e p="C:\Users\sevan\Desktop\Unity\TerrainGeneration" t="IncludeRecursive">
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="Materials" t="Include">
+          <e p="ChunkGeneration.compute" t="Include" />
+          <e p="MarchingTables.compute" t="Include" />
+        </e>
+        <e p="Scripts" t="Include">
+          <e p="Noise" t="Include">
+            <e p="Noise.cs" t="Include" />
+            <e p="Perlin.cs" t="Include" />
+          </e>
+          <e p="Player" t="Include">
+            <e p="MouseLook.cs" t="Include" />
+            <e p="PlayerMovement.cs" t="Include" />
+          </e>
+          <e p="TerrainGeneration" t="Include">
+            <e p="Marching Cubes" t="Include">
+              <e p="MarchingCubesConfiguration.cs" t="Include" />
+              <e p="MarchingCubesMeshGenerator.cs" t="Include" />
+            </e>
+            <e p="Mesh Data" t="Include">
+              <e p="Cube.cs" t="Include" />
+              <e p="MeshData.cs" t="Include" />
+            </e>
+            <e p="TerrainChunk.cs" t="Include" />
+            <e p="TerrainGenerator.cs" t="Include" />
+            <e p="UtilityFunctions.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="Packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+      <e p="TerrainGeneration.sln" t="IncludeFlat" />
+    </e>
+  </component>
+</project>

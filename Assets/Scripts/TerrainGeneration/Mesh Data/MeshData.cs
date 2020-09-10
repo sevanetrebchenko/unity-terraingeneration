@@ -94,8 +94,8 @@ public class MeshData {
 	private void ConstructCubeCorners(Cube cube) {
 		// Get 8 cube corners.
 		for (int i = 0; i < 8; ++i) {
-			Vector3Int cubeCorner = cube.normalizedCubePosition + MarchingCubesConfiguration.cornerTable[i];
-			cube.cubeCornerNoiseValues[i] = heightMap[cubeCorner.x, cubeCorner.y, cubeCorner.z];
+			//Vector3Int cubeCorner = cube.normalizedCubePosition + MarchingCubesConfiguration.cornerTable[i];
+			//cube.cubeCornerNoiseValues[i] = heightMap[cubeCorner.x, cubeCorner.y, cubeCorner.z];
 		}
 	}
 

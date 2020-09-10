@@ -28,47 +28,47 @@ public class Cube {
 
     public void GenerateCubeMeshData(bool terrainSmoothing, float surfaceLevel) {
         GetCubeConfiguration(surfaceLevel);
-
-        int edgeIndex = 0;
-		// A configuration has maximum 5 triangles in it.
-		for (int i = 0; i < 5; ++i) {
-			// A configuration element (triangle) consists of 3 points.
-			for (int j = 0; j < 3; ++j) {
-				int index = MarchingCubesConfiguration.triangleTable[configurationIndex, edgeIndex];
-
-				// Reached the end of this configuration.
-				if (index == -1) {
-					return;
-				}
-
-				Vector3 edgeVertex1 = normalizedCubePosition + MarchingCubesConfiguration.cornerTable[MarchingCubesConfiguration.edgeTable[index, 0]];
-				Vector3 edgeVertex2 = normalizedCubePosition + MarchingCubesConfiguration.cornerTable[MarchingCubesConfiguration.edgeTable[index, 1]];
-
-                Vector3 vertexPosition;
-
-                if (terrainSmoothing) {
-                    float edgeVertex1Noise = cubeCornerNoiseValues[MarchingCubesConfiguration.edgeTable[index, 0]];
-                    float edgeVertex2Noise = cubeCornerNoiseValues[MarchingCubesConfiguration.edgeTable[index, 1]];
-
-                    float diff = edgeVertex2Noise - edgeVertex1Noise;
-
-                    if (diff == 0) {
-                        diff = surfaceLevel;
-                    }
-                    else {
-                        diff = (surfaceLevel - edgeVertex1Noise) / diff;
-                    }
-
-                    vertexPosition = edgeVertex1 + ((edgeVertex2 - edgeVertex1) * diff);
-                }
-                else {
-                    vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
-                }
-
-                vertices[numElements++] = vertexPosition;
-                ++edgeIndex;
-			}
-		}
+  //
+  //       int edgeIndex = 0;
+		// // A configuration has maximum 5 triangles in it.
+		// for (int i = 0; i < 5; ++i) {
+		// 	// A configuration element (triangle) consists of 3 points.
+		// 	for (int j = 0; j < 3; ++j) {
+		// 		int index = MarchingCubesConfiguration.triangleTable[configurationIndex, edgeIndex];
+  //   
+		// 		// Reached the end of this configuration.
+		// 		if (index == -1) {
+		// 			return;
+		// 		}
+  //   
+		// 		Vector3 edgeVertex1 = normalizedCubePosition + MarchingCubesConfiguration.cornerTable[MarchingCubesConfiguration.edgeTable[index, 0]];
+		// 		Vector3 edgeVertex2 = normalizedCubePosition + MarchingCubesConfiguration.cornerTable[MarchingCubesConfiguration.edgeTable[index, 1]];
+  //   
+  //               Vector3 vertexPosition;
+  //               
+  //               if (terrainSmoothing) {
+  //                   float edgeVertex1Noise = cubeCornerNoiseValues[MarchingCubesConfiguration.edgeTable[index, 0]];
+  //                   float edgeVertex2Noise = cubeCornerNoiseValues[MarchingCubesConfiguration.edgeTable[index, 1]];
+  //               
+  //                   float diff = edgeVertex2Noise - edgeVertex1Noise;
+  //               
+  //                   if (diff == 0) {
+  //                       diff = surfaceLevel;
+  //                   }
+  //                   else {
+  //                       diff = (surfaceLevel - edgeVertex1Noise) / diff;
+  //                   }
+  //               
+  //                   vertexPosition = edgeVertex1 + ((edgeVertex2 - edgeVertex1) * diff);
+  //               }
+  //               else {
+  //                   vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
+  //               }
+  //               
+  //               vertices[numElements++] = vertexPosition;
+  //               ++edgeIndex;
+		// 	}
+		// }
 
         // Fill in mesh colors.
         for (int i = 0; i < numElements; ++i) {
