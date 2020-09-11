@@ -8,34 +8,28 @@ using Unity.Burst;
 public class TerrainChunk {
     // Chunk mesh.
     private GameObject gameObject;
-    private MeshFilter meshFilter;
-    private MeshRenderer meshRenderer;
-    private MeshCollider meshCollider;
-
+    
     private NativeArray<float> heightMap;
-    private float[] heightMapRaw;
     private int chunkSize;
     private float terrainSurfaceLevel;
     private bool terrainSmoothing;
     private int totalNumCubes;
 
-    private Vector3Int chunkWorldPosition;
-
     public TerrainChunk(NativeArray<float> heightMap, int chunkSize, Vector3Int chunkPosition, float terrainSurfaceLevel, bool terrainSmoothing, Transform parentTransform)
     {
         this.chunkSize = chunkSize;
         this.heightMap = heightMap;
-        heightMapRaw = heightMap.ToArray();
-        chunkWorldPosition = chunkPosition * chunkSize;
         this.terrainSurfaceLevel = terrainSurfaceLevel;
         this.terrainSmoothing = terrainSmoothing;
         totalNumCubes = (chunkSize - 1) * (chunkSize - 1) * (chunkSize - 1);
+        
+        Vector3Int chunkWorldPosition = chunkPosition * chunkSize;
         
         NativeArray<float3> meshVertices = new NativeArray<float3>(15 * totalNumCubes, Allocator.TempJob);
         NativeArray<int> numElementsPerCube = new NativeArray<int>(totalNumCubes, Allocator.TempJob);
 
         JobHandle handle = GenerateTerrainMesh(meshVertices, numElementsPerCube);
-        handle.Complete();    
+        handle.Complete();
         
         // Create mesh generator.
         gameObject = new GameObject {
@@ -45,9 +39,9 @@ public class TerrainChunk {
         gameObject.transform.parent = parentTransform;
 
         // Add mesh generator components.
-        meshFilter = gameObject.AddComponent<MeshFilter>();
-        meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        meshCollider = gameObject.AddComponent<MeshCollider>();
+        MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+        MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
 
         Mesh mesh = new Mesh();
@@ -97,11 +91,6 @@ public class TerrainChunk {
         meshVertices.Dispose();
         numElementsPerCube.Dispose();
     }
-    
-    private Vector3Int PointFromIndex(int index)
-    {
-        return new Vector3Int(index % chunkSize, index / (chunkSize * chunkSize), (index / chunkSize) % chunkSize);
-    }
 
     private JobHandle GenerateTerrainMesh(NativeArray<float3> meshVertices, NativeArray<int> numElements)
     {
@@ -118,7 +107,7 @@ public class TerrainChunk {
             chunkSize = chunkSize
         };
         // Each job marches one layer of the chunk.
-        return terrainMeshGenerationJob.ScheduleBatch(totalNumCubes, (chunkSize - 1) * (chunkSize - 1) * 3);
+        return terrainMeshGenerationJob.ScheduleBatch(totalNumCubes, (chunkSize - 1) * (chunkSize - 1));
     }
 
     public void UpdateTerrainChunk(Vector3 viewerPosition, float maxViewDistance) {
@@ -206,7 +195,6 @@ public struct TerrainMeshGenerationJob : IJobParallelForBatch
     [NativeDisableParallelForRestriction, WriteOnly] public NativeArray<float3> meshVertices;
     [NativeDisableParallelForRestriction, WriteOnly] public NativeArray<int> numElements;
     
-    // Terrain height map
     [ReadOnly] public NativeArray<float> terrainHeightMap;
     public float terrainSurfaceLevel;
     public bool terrainSmoothing;

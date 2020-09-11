@@ -21,8 +21,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a292b7d4-feeb-40b4-86c3-1d35b383bb02" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Noise/Noise.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Noise/Noise.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" afterDir="false" />
     </list>
@@ -47,14 +47,14 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesMeshGenerator.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/UtilityFunctions.cs" />
         <option value="$PROJECT_DIR$/Assets/Materials/ChunkGeneration.compute" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Noise/Noise.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Mesh Data/MeshData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Mesh Data/Cube.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesConfiguration.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Noise/Noise.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" />
       </list>
     </option>
   </component>
@@ -110,7 +110,7 @@
       <workItem from="1599446492452" duration="54616000" />
       <workItem from="1599774851026" duration="602000" />
       <workItem from="1599778655555" duration="33000" />
-      <workItem from="1599778761497" duration="9388000" />
+      <workItem from="1599778761497" duration="18623000" />
     </task>
     <servers />
   </component>
@@ -216,6 +216,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="92" y="92" width="2376" height="1216" key="VCS.FileHistoryDialog/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599785360146" />
+    <state x="881" y="310" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1599791685944">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="881" y="310" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599791685944" />
     <state x="936" y="330" key="run.anything.popup" timestamp="1599788343293">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -240,32 +244,6 @@
             </endOffsets>
           </properties>
           <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs</url>
-          <line>68</line>
-          <properties documentPath="C:\Users\sevan\Desktop\Unity\TerrainGeneration\Assets\Scripts\TerrainGeneration\TerrainChunk.cs" initialLine="62">
-            <startOffsets>
-              <option value="2570" />
-            </startOffsets>
-            <endOffsets>
-              <option value="2621" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs</url>
-          <line>89</line>
-          <properties documentPath="C:\Users\sevan\Desktop\Unity\TerrainGeneration\Assets\Scripts\TerrainGeneration\TerrainChunk.cs" initialLine="84">
-            <startOffsets>
-              <option value="3349" />
-            </startOffsets>
-            <endOffsets>
-              <option value="3374" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="13" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

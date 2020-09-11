@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using TreeEditor;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using Unity.Mathematics;
 
-[System.Serializable]
+[System.Serializable, BurstCompile]
 public class TerrainGenerator : MonoBehaviour {
     // PUBLIC
     public Transform viewer;
@@ -32,55 +33,61 @@ public class TerrainGenerator : MonoBehaviour {
     private int totalChunkSize;
     
     private NativeArray<float> terrainHeightMap;
-    private Dictionary<Vector3Int, TerrainChunk> terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
-    private List<TerrainChunk> previousFrameTerrainChunks = new List<TerrainChunk>();
+    private Dictionary<Vector3Int, TerrainChunk> terrainChunks;
+    private List<TerrainChunk> previousFrameTerrainChunks;
 
     private void Start()
     {
         chunkSize = 21;
         terrainSeed = 23452345;
-        totalNumChunks = numChunksPerAxis * numChunksPerAxis * numChunksPerAxis;
+        totalNumChunks = numChunksPerAxis * numChunksPerAxis * numChunksPerAxis * 8;
         totalChunkSize = chunkSize * chunkSize * chunkSize;
+        
+        terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
+        previousFrameTerrainChunks = new List<TerrainChunk>();
+        
+        // Generate starting chunks
+        Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
+        terrainHeightMap = new NativeArray<float>(totalChunkSize * totalNumChunks, Allocator.Persistent);
+
+        // Generate terrain chunk height maps.
+        int counter = 0;
+        for (int y = -numChunksPerAxis; y < numChunksPerAxis; ++y)
+        {
+            for (int z = -numChunksPerAxis; z < numChunksPerAxis; ++z)
+            {
+                for (int x = -numChunksPerAxis; x < numChunksPerAxis; ++x)
+                {
+                    Vector3Int chunkPosition = new Vector3Int(x, y, z);
+                    chunkPositions[counter] = chunkPosition;
+                    
+                    // Generate chunk height map.
+                    NativeArray<float> chunkHeightMap = new NativeArray<float>(totalChunkSize, Allocator.TempJob);
+                    JobHandle handle = GenerateTerrainChunkHeightMap(chunkHeightMap, chunkPosition);
+                    handle.Complete();
+                    NativeArray<float>.Copy(chunkHeightMap, 0, terrainHeightMap, counter * totalChunkSize, totalChunkSize);
+
+                    chunkHeightMap.Dispose();
+                    ++counter;
+                }
+            }
+        }
+        
+        // Create terrain chunks.
+        for (int i = 0; i < chunkPositions.Length; ++i)
+        {
+            Vector3Int chunkPosition = chunkPositions[i];
+            // Generate chunk from height map.
+            TerrainChunk terrainChunk = new TerrainChunk(terrainHeightMap.GetSubArray(i * totalChunkSize, totalChunkSize), chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform);
+            terrainChunk.SetLayer(8);
+            terrainChunks.Add(chunkPosition, terrainChunk);
+        }
+        
     }
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.K))
-        {
-            Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
-            terrainHeightMap = new NativeArray<float>(totalChunkSize * totalNumChunks, Allocator.Persistent);
-            NativeList<JobHandle> jobHandles = new NativeList<JobHandle>(totalNumChunks, Allocator.Persistent);
-
-            // Generate terrain chunk height maps.
-            int counter = 0;
-            for (int y = 0; y < numChunksPerAxis; ++y)
-            {
-                for (int z = 0; z < numChunksPerAxis; ++z)
-                {
-                    for (int x = 0; x < numChunksPerAxis; ++x)
-                    {
-                        Vector3Int chunkPosition = new Vector3Int(x, y, z);
-                        chunkPositions[counter] = chunkPosition;
-                    
-                        // Generate chunk height map.
-                        NativeArray<float> chunkHeightMap = new NativeArray<float>(totalChunkSize, Allocator.TempJob);
-                        JobHandle handle = GenerateTerrainChunkHeightMap(chunkHeightMap, chunkPosition);
-                        handle.Complete();
-                        NativeArray<float>.Copy(chunkHeightMap, 0, terrainHeightMap, counter * totalChunkSize, chunkHeightMap.Length);
-                    
-                        // Generate chunk from height map.
-                        terrainChunks.Add(chunkPosition, new TerrainChunk(chunkHeightMap, chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform));
-                    
-                        // Clean up
-                        chunkHeightMap.Dispose();
-                        ++counter;
-                    }
-                }
-            }
         
-            JobHandle.CompleteAll(jobHandles);
-            jobHandles.Dispose();
-        }
     }
 
     private JobHandle GenerateTerrainChunkHeightMap(NativeArray<float> terrainHeightMap, Vector3Int chunkPosition)
@@ -88,6 +95,7 @@ public class TerrainGenerator : MonoBehaviour {
         TerrainHeightMapGenerationJob terrainHeightMapGenerationJob = new TerrainHeightMapGenerationJob()
         {
             terrainHeightMap = terrainHeightMap,
+            noiseMap = PerlinNoise.PermutationArray,
             chunkSize = chunkSize,
             mapSeed = terrainSeed,
             noiseScale = noiseScale,
@@ -97,7 +105,7 @@ public class TerrainGenerator : MonoBehaviour {
             manualOffset = chunkPosition * chunkSize + terrainOffset,
         };
         // Each job computes one layer of the chunk.
-        return terrainHeightMapGenerationJob.ScheduleBatch(totalChunkSize, chunkSize * chunkSize * 3);
+        return terrainHeightMapGenerationJob.ScheduleBatch(totalChunkSize, chunkSize * chunkSize);
     }
     //
     // public void ReceiveClick(Transform objectTransform, Vector3 hitPoint, bool place, int miningRadius) {
@@ -156,10 +164,11 @@ public class TerrainGenerator : MonoBehaviour {
     // }
 }
 
+[BurstCompile]
 public struct TerrainHeightMapGenerationJob : IJobParallelForBatch
 {
-    [WriteOnly]
-    public NativeArray<float> terrainHeightMap; // Array for the height maps for all terrain chunks.
+    [NativeDisableParallelForRestriction, WriteOnly] public NativeArray<float> terrainHeightMap; // Array for the height maps for all terrain chunks.
+    [ReadOnly] public NativeArray<int> noiseMap;
     
     public int chunkSize;
     
@@ -198,12 +207,12 @@ public struct TerrainHeightMapGenerationJob : IJobParallelForBatch
             float noiseHeight = 0.0f;
 
             for (int i = 0; i < numNoiseOctaves; ++i) {
-                float sampleX = (normalizedCubePosition.x + octaveOffsets[i].x) / noiseScale * frequency;
-                float sampleY = (normalizedCubePosition.y + octaveOffsets[i].y) / noiseScale * frequency;
-                float sampleZ = (normalizedCubePosition.z + octaveOffsets[i].z) / noiseScale * frequency;
+                float sampleX = (normalizedCubePosition.x + manualOffset.x) / noiseScale * frequency;
+                float sampleY = (normalizedCubePosition.y + manualOffset.y) / noiseScale * frequency;
+                float sampleZ = (normalizedCubePosition.z + manualOffset.z) / noiseScale * frequency;
 
                 // Perlin noise gets the same value each time if the arguments passed are integer values.
-                float perlinValue = PerlinNoise.Noise(sampleX, sampleY, sampleZ) + 0.5f;
+                float perlinValue = Noise(sampleX, sampleY, sampleZ) + 0.5f;
                 noiseHeight += perlinValue * amplitude;
 
                 amplitude *= persistence; // Persistence should be between 0 and 1 - amplitude decreases with each octave.
@@ -217,9 +226,48 @@ public struct TerrainHeightMapGenerationJob : IJobParallelForBatch
     }
 
     
-    int3 PointFromIndex(int index)
+    private int3 PointFromIndex(int index)
     {
         return new int3(index % chunkSize, index / (chunkSize * chunkSize), (index / chunkSize) % chunkSize);
+    }
+    
+    // DENSITY FUNCTION
+    // Taken from https://github.com/keijiro/PerlinNoise/blob/master/Assets/Perlin.cs
+    private float Noise(float x, float y, float z) {
+        var X = Mathf.FloorToInt(x) & 0xff;
+        var Y = Mathf.FloorToInt(y) & 0xff;
+        var Z = Mathf.FloorToInt(z) & 0xff;
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+        z -= Mathf.Floor(z);
+        var u = Fade(x);
+        var v = Fade(y);
+        var w = Fade(z);
+        var A = (noiseMap[X] + Y) & 0xff;
+        var B = (noiseMap[X + 1] + Y) & 0xff;
+        var AA = (noiseMap[A] + Z) & 0xff;
+        var BA = (noiseMap[B] + Z) & 0xff;
+        var AB = (noiseMap[A + 1] + Z) & 0xff;
+        var BB = (noiseMap[B + 1] + Z) & 0xff;
+        return Lerp(w, Lerp(v, Lerp(u, Grad(noiseMap[AA], x, y, z), Grad(noiseMap[BA], x - 1, y, z)),
+                Lerp(u, Grad(noiseMap[AB], x, y - 1, z), Grad(noiseMap[BB], x - 1, y - 1, z))),
+            Lerp(v, Lerp(u, Grad(noiseMap[AA + 1], x, y, z - 1), Grad(noiseMap[BA + 1], x - 1, y, z - 1)),
+                Lerp(u, Grad(noiseMap[AB + 1], x, y - 1, z - 1), Grad(noiseMap[BB + 1], x - 1, y - 1, z - 1))));
+    }
+
+    private float Fade(float t) {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    private float Lerp(float t, float a, float b) {
+        return a + t * (b - a);
+    }
+
+    private static float Grad(int hash, float x, float y, float z) {
+        var h = hash & 15;
+        var u = h < 8 ? x : y;
+        var v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
+        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 }
 
