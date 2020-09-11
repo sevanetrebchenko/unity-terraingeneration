@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -29,21 +30,58 @@ public class TerrainGenerator : MonoBehaviour {
     private int totalNumChunks;
     private int totalChunkSize;
 
+    private bool initialized = false;
+    
     private NativeArray<float> terrainHeightMap;
     private Dictionary<Vector3Int, TerrainChunk> terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
     private List<TerrainChunk> previousFrameTerrainChunks = new List<TerrainChunk>();
 
     private void Start()
     {
-        chunkSize = 15;
+        chunkSize = 21;
         totalNumChunks = numChunksPerAxis * numChunksPerAxis * numChunksPerAxis;
         totalChunkSize = chunkSize * chunkSize * chunkSize;
         
+        Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
+        terrainHeightMap = new NativeArray<float>(totalChunkSize * totalNumChunks, Allocator.Persistent);
+        NativeList<JobHandle> jobHandles = new NativeList<JobHandle>(totalNumChunks, Allocator.Persistent);
+
+        // Generate terrain chunk height maps.
+        int counter = 0;
+        for (int y = 0; y < numChunksPerAxis; ++y)
+        {
+            for (int z = 0; z < numChunksPerAxis; ++z)
+            {
+                for (int x = 0; x < numChunksPerAxis; ++x)
+                {
+                    Vector3Int chunkPosition = new Vector3Int(x, y, z);
+                    chunkPositions[counter] = chunkPosition;
+                    
+                    // Generate chunk height map.
+                    NativeArray<float> chunkHeightMap = new NativeArray<float>(totalChunkSize, Allocator.TempJob);
+                    JobHandle handle = GenerateTerrainChunkHeightMap(chunkHeightMap, chunkPosition);
+                    handle.Complete();
+                    NativeArray<float>.Copy(chunkHeightMap, 0, terrainHeightMap, counter * totalChunkSize, chunkHeightMap.Length);
+                    
+                    // Generate chunk from height map.
+                    terrainChunks.Add(chunkPosition, new TerrainChunk(chunkHeightMap, chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform));
+                    
+                    // Clean up
+                    chunkHeightMap.Dispose();
+                    ++counter;
+                }
+            }
+        }
+        
+        JobHandle.CompleteAll(jobHandles);
+        jobHandles.Dispose();
+
+        initialized = true;
     }
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.K))
+        if (false)
         {
             Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
             terrainHeightMap = new NativeArray<float>(totalChunkSize * totalNumChunks, Allocator.Persistent);
@@ -169,7 +207,6 @@ public struct TerrainHeightMapGenerationJob : IJobParallelFor
     public float persistence;
     public float lacunarity;
     public float3 manualOffset;
-    public int numChunksPerAxis;
     
     public void Execute(int index)
     {
@@ -187,41 +224,32 @@ public struct TerrainHeightMapGenerationJob : IJobParallelFor
             noiseScale = 0.0001f;
         }
         
+        int3 normalizedCubePosition = PointFromIndex(index);
+        
         // Generate perlin noise values in the map.
-        int counter = 0;
-        for (int ny = 0; ny < chunkSize; ++ny) {
-            for (int nx = 0; nx < chunkSize; ++nx) {
-                for (int nz = 0; nz < chunkSize; ++nz)
-                {
-                    if (counter++ == index)
-                    {
-                        int x = nx;
-                        int y = ny * chunkSize * chunkSize * numChunksPerAxis * numChunksPerAxis;
-                        int z = nz * chunkSize * numChunksPerAxis;
-                    
-                        float amplitude = 1.0f;
-                        float frequency = 1.0f;
-                        float noiseHeight = 0.0f;
+        float amplitude = 1.0f;
+        float frequency = 1.0f;
+        float noiseHeight = 0.0f;
 
-                        for (int i = 0; i < numNoiseOctaves; ++i) {
-                            float sampleX = (float)(x + octaveOffsets[i].x) / noiseScale * frequency;
-                            float sampleY = (float)(y + octaveOffsets[i].y) / noiseScale * frequency;
-                            float sampleZ = (float)(z + octaveOffsets[i].z) / noiseScale * frequency;
+        for (int i = 0; i < numNoiseOctaves; ++i) {
+            float sampleX = (normalizedCubePosition.x + octaveOffsets[i].x) / noiseScale * frequency;
+            float sampleY = (normalizedCubePosition.y + octaveOffsets[i].y) / noiseScale * frequency;
+            float sampleZ = (normalizedCubePosition.z + octaveOffsets[i].z) / noiseScale * frequency;
 
-                            // Perlin noise gets the same value each time if the arguments passed are integer values.
-                            float perlinValue = PerlinNoise.Noise(sampleX, sampleY, sampleZ) + 0.5f;
-                            noiseHeight += perlinValue * amplitude;
+            // Perlin noise gets the same value each time if the arguments passed are integer values.
+            float perlinValue = PerlinNoise.Noise(sampleX, sampleY, sampleZ) + 0.5f;
+            noiseHeight += perlinValue * amplitude;
 
-                            amplitude *= persistence; // Persistence should be between 0 and 1 - amplitude decreases with each octave.
-                            frequency *= lacunarity;  // Lacunarity should be greater than 1 - frequency increases with each octave.
-                        }
-
-                        terrainHeightMap[index] = noiseHeight;
-                        return;
-                    }
-                }
-            }
+            amplitude *= persistence; // Persistence should be between 0 and 1 - amplitude decreases with each octave.
+            frequency *= lacunarity;  // Lacunarity should be greater than 1 - frequency increases with each octave.
         }
+
+        terrainHeightMap[index] = noiseHeight;
+    }
+    
+    int3 PointFromIndex(int index)
+    {
+        return new int3(index % chunkSize, index / (chunkSize * chunkSize), (index / chunkSize) % chunkSize);
     }
 }
 

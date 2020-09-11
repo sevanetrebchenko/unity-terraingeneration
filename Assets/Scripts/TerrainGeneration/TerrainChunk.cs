@@ -13,19 +13,23 @@ public class TerrainChunk {
     private MeshCollider meshCollider;
 
     private NativeArray<float> heightMap;
+    private float[] heightMapRaw;
     private int chunkSize;
     private float terrainSurfaceLevel;
     private bool terrainSmoothing;
     private int totalNumCubes;
 
+    private Vector3Int chunkWorldPosition;
+
     public TerrainChunk(NativeArray<float> heightMap, int chunkSize, Vector3Int chunkPosition, float terrainSurfaceLevel, bool terrainSmoothing, Transform parentTransform)
     {
         this.chunkSize = chunkSize;
         this.heightMap = heightMap;
+        heightMapRaw = heightMap.ToArray();
+        chunkWorldPosition = chunkPosition * chunkSize;
         this.terrainSurfaceLevel = terrainSurfaceLevel;
         this.terrainSmoothing = terrainSmoothing;
         totalNumCubes = (chunkSize - 1) * (chunkSize - 1) * (chunkSize - 1);
-        Debug.Log("total num cubes: " + 15 * totalNumCubes);
         
         NativeArray<float3> meshVertices = new NativeArray<float3>(15 * totalNumCubes, Allocator.TempJob);
         NativeArray<int> numElementsPerCube = new NativeArray<int>(totalNumCubes, Allocator.TempJob);
@@ -44,6 +48,7 @@ public class TerrainChunk {
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshCollider = gameObject.AddComponent<MeshCollider>();
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
 
         Mesh mesh = new Mesh();
 
@@ -56,10 +61,6 @@ public class TerrainChunk {
             if (numElements != 0)
             {
                 filledCubes.Add((i, numElements));
-                if (numElements % 3 != 0)
-                {
-                    Debug.DebugBreak();
-                }
                 totalNumElements += numElements;
             }
         }
@@ -73,13 +74,12 @@ public class TerrainChunk {
         for (int i = 0; i < filledCubes.Count; ++i)
         {
             (int, int) currentCubeMeshData = filledCubes[i];
-            int offset = currentCubeMeshData.Item1;
             
             // Copy over elements.
             for (int j = 0; j < currentCubeMeshData.Item2; ++j)
             {
-                float3 meshVertex = meshVertices[offset * 15 + j];
-                vertices[counter] = new Vector3(meshVertex.x, meshVertex.y, meshVertex.z) + chunkPosition * chunkSize;
+                float3 meshVertex = meshVertices[currentCubeMeshData.Item1 * 15 + j];
+                vertices[counter] = new Vector3(meshVertex.x, meshVertex.y, meshVertex.z) + chunkWorldPosition; // Covert mesh vertices to world position.
                 indices[counter] = counter;
 
                 ++counter;
@@ -96,6 +96,34 @@ public class TerrainChunk {
 
         meshVertices.Dispose();
         numElementsPerCube.Dispose();
+    }
+
+    public void DebugDraw()
+    {
+        for (int i = 0; i < heightMap.Length; ++i)
+        {
+            float heightValue = heightMapRaw[i];
+            if (heightValue <= terrainSurfaceLevel)
+            {
+                Gizmos.color = Color.black;
+            }
+            else
+            {
+                Gizmos.color = Color.white;
+            }
+            
+            Gizmos.DrawSphere(PointFromIndex(i), 0.1f);
+        }
+    }
+
+    public void Delete()
+    {
+        heightMap.Dispose();
+    }
+    
+    private Vector3Int PointFromIndex(int index)
+    {
+        return new Vector3Int(index % chunkSize, index / (chunkSize * chunkSize), (index / chunkSize) % chunkSize);
     }
 
     private JobHandle GenerateTerrainMesh(NativeArray<float3> meshVertices, NativeArray<int> numElements)
@@ -210,18 +238,19 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
     {
         // Construct cube with noise values.
         int3 normalizedCubePosition = PointFromIndex(index);
+
         NativeArray<float> cubeCornerValues = new NativeArray<float>(8, Allocator.Temp)
         {
             [0] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z)],
             [1] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z)],
-            [2] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
-            [3] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
-            [4] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
-            [5] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
-            [6] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)],
-            [7] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)]
+            [2] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
+            [3] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
+            [4] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
+            [5] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
+            [6] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)],
+            [7] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)]
         };
-        
+
         // March cube.
         int configuration = GetCubeConfiguration(cubeCornerValues);
 
@@ -242,8 +271,14 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
                     break;
                 }
 
-                int3 corner1 = new int3(cornerTable[edgeTable[triangleIndex * 2 + 0] + 0], cornerTable[edgeTable[triangleIndex * 2 + 0] + 1], cornerTable[edgeTable[triangleIndex * 2 + 0] + 2]);
-                int3 corner2 = new int3(cornerTable[edgeTable[triangleIndex * 2 + 1] + 3], cornerTable[edgeTable[triangleIndex * 2 + 1] + 4], cornerTable[edgeTable[triangleIndex * 2 + 1] + 5]);
+                int edgeVertex1Index = triangleIndex * 2 + 0;
+                int edgeVertex2Index = triangleIndex * 2 + 1;
+
+                int corner1Index = edgeTable[edgeVertex1Index] * 3;
+                int corner2Index = edgeTable[edgeVertex2Index] * 3;
+                
+                int3 corner1 = new int3(cornerTable[corner1Index + 0], cornerTable[corner1Index + 1], cornerTable[corner1Index + 2]);
+                int3 corner2 = new int3(cornerTable[corner2Index + 0], cornerTable[corner2Index + 1], cornerTable[corner2Index + 2]);
                 
                 float3 edgeVertex1 = normalizedCubePosition + corner1;
                 float3 edgeVertex2 = normalizedCubePosition + corner2;
@@ -270,7 +305,7 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
                 }
 
                 meshVertices[index * 15 + numWrittenElements] = vertexPosition;
-                numWrittenElements++;
+                ++numWrittenElements;
                 ++edgeIndex;
             }
 
@@ -286,12 +321,12 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
     
     int3 PointFromIndex(int index)
     {
-        return new int3(index % chunkSize, index / (chunkSize * chunkSize), (index / chunkSize) % chunkSize);
+        return new int3(index % (chunkSize - 1), index / ((chunkSize - 1) * (chunkSize - 1)), (index / (chunkSize - 1)) % (chunkSize - 1));
     }
 
     int IndexFromCoordinate(int x, int y, int z)
     {
-        return x + y * chunkSize * chunkSize + z * chunkSize;
+        return x + y * (chunkSize) * (chunkSize) + z * (chunkSize);
     }
 
     int GetCubeConfiguration(NativeArray<float> cubeCornerValues)

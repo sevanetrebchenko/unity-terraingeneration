@@ -42,26 +42,37 @@ public static class MarchingCubesConfiguration {
     public static readonly NativeArray<int> edgeTable = new NativeArray<int>(24, Allocator.Persistent) {
         [0] = 0,
         [1] = 1,
+        
         [2] = 1,
         [3] = 2,
+        
         [4] = 3,
         [5] = 2,
+        
         [6] = 0,
         [7] = 3,
+        
         [8] = 4,
         [9] = 5,
+        
         [10] = 5,
         [11] = 6,
+        
         [12] = 7,
         [13] = 6,
+        
         [14] = 4,
         [15] = 7,
+        
         [16] = 0,
         [17] = 4,
+        
         [18] = 1,
         [19] = 5,
+        
         [20] = 2,
         [21] = 6,
+        
         [22] = 3,
         [23] = 7,
     };
