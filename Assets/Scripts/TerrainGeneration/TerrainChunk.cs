@@ -97,29 +97,6 @@ public class TerrainChunk {
         meshVertices.Dispose();
         numElementsPerCube.Dispose();
     }
-
-    public void DebugDraw()
-    {
-        for (int i = 0; i < heightMap.Length; ++i)
-        {
-            float heightValue = heightMapRaw[i];
-            if (heightValue <= terrainSurfaceLevel)
-            {
-                Gizmos.color = Color.black;
-            }
-            else
-            {
-                Gizmos.color = Color.white;
-            }
-            
-            Gizmos.DrawSphere(PointFromIndex(i), 0.1f);
-        }
-    }
-
-    public void Delete()
-    {
-        heightMap.Dispose();
-    }
     
     private Vector3Int PointFromIndex(int index)
     {
@@ -140,7 +117,8 @@ public class TerrainChunk {
             terrainSmoothing = terrainSmoothing,
             chunkSize = chunkSize
         };
-        return terrainMeshGenerationJob.Schedule(totalNumCubes, 15);
+        // Each job marches one layer of the chunk.
+        return terrainMeshGenerationJob.ScheduleBatch(totalNumCubes, (chunkSize - 1) * (chunkSize - 1) * 3);
     }
 
     public void UpdateTerrainChunk(Vector3 viewerPosition, float maxViewDistance) {
@@ -217,7 +195,8 @@ public class TerrainChunk {
     }
 }
 
-public struct TerrainMeshGenerationJob : IJobParallelFor
+[BurstCompile]
+public struct TerrainMeshGenerationJob : IJobParallelForBatch
 {
     // Marching cube configuration
     [ReadOnly] public NativeArray<int> cornerTable;
@@ -225,7 +204,7 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
     [ReadOnly] public NativeArray<int> triangleTable;
 
     [NativeDisableParallelForRestriction, WriteOnly] public NativeArray<float3> meshVertices;
-    [WriteOnly] public NativeArray<int> numElements;
+    [NativeDisableParallelForRestriction, WriteOnly] public NativeArray<int> numElements;
     
     // Terrain height map
     [ReadOnly] public NativeArray<float> terrainHeightMap;
@@ -234,88 +213,91 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
 
     public int chunkSize;
 
-    public void Execute(int index)
+    public void Execute(int startingIndex, int count)
     {
-        // Construct cube with noise values.
-        int3 normalizedCubePosition = PointFromIndex(index);
-
-        NativeArray<float> cubeCornerValues = new NativeArray<float>(8, Allocator.Temp)
+        NativeArray<float> cubeCornerValues = new NativeArray<float>(8, Allocator.Temp);
+        for (int currentIndex = 0; currentIndex < count; ++currentIndex)
         {
-            [0] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z)],
-            [1] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z)],
-            [2] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
-            [3] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z)],
-            [4] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
-            [5] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z + 1)],
-            [6] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)],
-            [7] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)]
-        };
+            int index = startingIndex + currentIndex;
+            // Construct cube with noise values.
+            int3 normalizedCubePosition = PointFromIndex(index);
 
-        // March cube.
-        int configuration = GetCubeConfiguration(cubeCornerValues);
+            cubeCornerValues[0] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z)];
+            cubeCornerValues[1] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z)];
+            cubeCornerValues[2] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z)];
+            cubeCornerValues[3] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z)];
+            cubeCornerValues[4] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y, normalizedCubePosition.z + 1)];
+            cubeCornerValues[5] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y, normalizedCubePosition.z + 1)];
+            cubeCornerValues[6] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x + 1, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)];
+            cubeCornerValues[7] = terrainHeightMap[IndexFromCoordinate(normalizedCubePosition.x, normalizedCubePosition.y + 1, normalizedCubePosition.z + 1)];
 
-        int numWrittenElements = 0;
-        int edgeIndex = 0;
-        bool breakOut = false;
-        
-        // A configuration has maximum 5 triangles in it.
-        for (int i = 0; i < 5; ++i) {
-            // A configuration element (triangle) consists of 3 points.
-            for (int j = 0; j < 3; ++j) {
-                int triangleIndex = triangleTable[configuration * 16 + edgeIndex];
+            // March cube.
+            int configuration = GetCubeConfiguration(cubeCornerValues);
 
-                // Reached the end of this configuration.
-                if (triangleIndex == -1)
-                {
-                    breakOut = true;
-                    break;
-                }
+            int numWrittenElements = 0;
+            int edgeIndex = 0;
+            bool breakOut = false;
+            
+            // A configuration has maximum 5 triangles in it.
+            for (int i = 0; i < 5; ++i) {
+                // A configuration element (triangle) consists of 3 points.
+                for (int j = 0; j < 3; ++j) {
+                    int triangleIndex = triangleTable[configuration * 16 + edgeIndex];
 
-                int edgeVertex1Index = triangleIndex * 2 + 0;
-                int edgeVertex2Index = triangleIndex * 2 + 1;
+                    // Reached the end of this configuration.
+                    if (triangleIndex == -1)
+                    {
+                        breakOut = true;
+                        break;
+                    }
 
-                int corner1Index = edgeTable[edgeVertex1Index] * 3;
-                int corner2Index = edgeTable[edgeVertex2Index] * 3;
-                
-                int3 corner1 = new int3(cornerTable[corner1Index + 0], cornerTable[corner1Index + 1], cornerTable[corner1Index + 2]);
-                int3 corner2 = new int3(cornerTable[corner2Index + 0], cornerTable[corner2Index + 1], cornerTable[corner2Index + 2]);
-                
-                float3 edgeVertex1 = normalizedCubePosition + corner1;
-                float3 edgeVertex2 = normalizedCubePosition + corner2;
+                    int edgeVertex1Index = triangleIndex * 2 + 0;
+                    int edgeVertex2Index = triangleIndex * 2 + 1;
 
-                float3 vertexPosition;
-
-                if (terrainSmoothing) {
-                    float edgeVertex1Noise = cubeCornerValues[edgeTable[triangleIndex * 3 + 0]];
-                    float edgeVertex2Noise = cubeCornerValues[edgeTable[triangleIndex * 3 + 1]];
+                    int corner1Index = edgeTable[edgeVertex1Index] * 3;
+                    int corner2Index = edgeTable[edgeVertex2Index] * 3;
                     
-                    float diff = edgeVertex2Noise - edgeVertex1Noise;
+                    int3 corner1 = new int3(cornerTable[corner1Index + 0], cornerTable[corner1Index + 1], cornerTable[corner1Index + 2]);
+                    int3 corner2 = new int3(cornerTable[corner2Index + 0], cornerTable[corner2Index + 1], cornerTable[corner2Index + 2]);
                     
-                    if (diff == 0) {
-                        diff = terrainSurfaceLevel;
+                    float3 edgeVertex1 = normalizedCubePosition + corner1;
+                    float3 edgeVertex2 = normalizedCubePosition + corner2;
+
+                    float3 vertexPosition;
+
+                    if (terrainSmoothing) {
+                        float edgeVertex1Noise = cubeCornerValues[edgeTable[triangleIndex * 3 + 0]];
+                        float edgeVertex2Noise = cubeCornerValues[edgeTable[triangleIndex * 3 + 1]];
+                        
+                        float diff = edgeVertex2Noise - edgeVertex1Noise;
+                        
+                        if (diff == 0) {
+                            diff = terrainSurfaceLevel;
+                        }
+                        else {
+                            diff = (terrainSurfaceLevel - edgeVertex1Noise) / diff;
+                        }
+                        
+                        vertexPosition = edgeVertex1 + ((edgeVertex2 - edgeVertex1) * diff);
                     }
                     else {
-                        diff = (terrainSurfaceLevel - edgeVertex1Noise) / diff;
+                        vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
                     }
-                    
-                    vertexPosition = edgeVertex1 + ((edgeVertex2 - edgeVertex1) * diff);
-                }
-                else {
-                    vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
+
+                    meshVertices[index * 15 + numWrittenElements] = vertexPosition;
+                    ++numWrittenElements;
+                    ++edgeIndex;
                 }
 
-                meshVertices[index * 15 + numWrittenElements] = vertexPosition;
-                ++numWrittenElements;
-                ++edgeIndex;
+                if (breakOut)
+                {
+                    break;
+                }
             }
 
-            if (breakOut)
-            {
-                break;
-            }
+            numElements[index] = numWrittenElements;
         }
-
-        numElements[index] = numWrittenElements;
+        
         cubeCornerValues.Dispose();
     }
     

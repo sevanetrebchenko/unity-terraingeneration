@@ -30,23 +30,23 @@ public class MouseLook : MonoBehaviour {
         transform.localRotation = Quaternion.Euler(xRotation, 0.0f, 0.0f); // Rotate around the x axis.
         playerBody.Rotate(Vector3.up * mouseX);
 
-        // Mouse input.
-        if (Input.GetMouseButtonDown(0)) {
-            RaycastHit hit;
-
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit)) {
-                terrainGenerator.ReceiveClick(hit.transform, hit.point, true, miningRadius);
-            }
-        }
-
-        if (Input.GetMouseButtonDown(1)) {
-            RaycastHit hit;
-
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit)) {
-                terrainGenerator.ReceiveClick(hit.transform, hit.point, false, miningRadius);
-            }
-        }
+        // // Mouse input.
+        // if (Input.GetMouseButtonDown(0)) {
+        //     RaycastHit hit;
+        //
+        //     Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        //     if (Physics.Raycast(ray, out hit)) {
+        //         terrainGenerator.ReceiveClick(hit.transform, hit.point, true, miningRadius);
+        //     }
+        // }
+        //
+        // if (Input.GetMouseButtonDown(1)) {
+        //     RaycastHit hit;
+        //
+        //     Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        //     if (Physics.Raycast(ray, out hit)) {
+        //         terrainGenerator.ReceiveClick(hit.transform, hit.point, false, miningRadius);
+        //     }
+        // }
     }
 }

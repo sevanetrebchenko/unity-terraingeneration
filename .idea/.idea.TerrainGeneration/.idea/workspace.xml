@@ -21,8 +21,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a292b7d4-feeb-40b4-86c3-1d35b383bb02" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesConfiguration.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesConfiguration.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" afterDir="false" />
     </list>
@@ -36,13 +36,13 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/UtilityFunctions.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/random.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/E8645A79-B079-4E0E-9A2B-5BBFF081B88A/c0/fe295ec0/Mesh.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/../../MarchingTables.compute" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" />
         <option value="$PROJECT_DIR$/Assets/Materials/MarchingTables.compute" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesMeshGenerator.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/UtilityFunctions.cs" />
@@ -51,8 +51,10 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Mesh Data/MeshData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Mesh Data/Cube.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Marching Cubes/MarchingCubesConfiguration.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Noise/Perlin.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainChunk.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/TerrainGenerator.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Player/MouseLook.cs" />
       </list>
     </option>
   </component>
@@ -108,7 +110,7 @@
       <workItem from="1599446492452" duration="54616000" />
       <workItem from="1599774851026" duration="602000" />
       <workItem from="1599778655555" duration="33000" />
-      <workItem from="1599778761497" duration="5841000" />
+      <workItem from="1599778761497" duration="9388000" />
     </task>
     <servers />
   </component>
@@ -210,6 +212,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="604" y="326" width="1304" height="710" key="SettingsEditor/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599365640039" />
+    <state x="92" y="92" width="2376" height="1216" key="VCS.FileHistoryDialog" timestamp="1599785360146">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="92" y="92" width="2376" height="1216" key="VCS.FileHistoryDialog/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599785360146" />
+    <state x="936" y="330" key="run.anything.popup" timestamp="1599788343293">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="936" y="330" key="run.anything.popup/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599788343293" />
     <state x="943" y="315" width="672" height="678" key="search.everywhere.popup" timestamp="1599348817764">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
