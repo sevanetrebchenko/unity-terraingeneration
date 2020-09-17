@@ -7,13 +7,12 @@
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
         <e p="Materials" t="Include">
-          <e p="ChunkGeneration.compute" t="Include" />
-          <e p="MarchingTables.compute" t="Include" />
+          <e p="Noise.compute" t="Include" />
+          <e p="TerrainChunkHeightMapGeneration.compute" t="Include" />
         </e>
         <e p="Scripts" t="Include">
           <e p="Noise" t="Include">
-            <e p="Noise.cs" t="Include" />
-            <e p="Perlin.cs" t="Include" />
+            <e p="NoiseMap.cs" t="Include" />
           </e>
           <e p="Player" t="Include">
             <e p="MouseLook.cs" t="Include" />

@@ -1,0 +1,56 @@
+﻿#pragma kernel TerrainGen
+#include "Noise.compute"
+
+RWStructuredBuffer<float> terrainHeightMap;
+StructuredBuffer<float3> offsets;
+
+int chunkSize;
+float noiseScale;
+int numNoiseOctaves;
+float persistence;
+float lacunarity;
+
+
+int IndexFromCoordinate(int x, int y, int z) {
+    return y * chunkSize * chunkSize + z * chunkSize + x;
+}
+
+[numthreads(1024, 1, 1)]
+void TerrainGen(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= chunkSize * chunkSize * chunkSize)
+    {
+        return;
+    }
+    
+    if (noiseScale <= 0) {
+        noiseScale = 0.0001f;
+    }
+
+    // Generate perlin noise values in the map.
+    float amplitude = 1.0f;
+    float frequency = 1.0f;
+    float noiseHeight = 0.0f;
+
+    for (int i = 0; i < numNoiseOctaves; ++i) {
+        float sampleX = (id.x + offsets[i].x) / noiseScale * frequency;
+        float sampleY = (id.y + offsets[i].y) / noiseScale * frequency;
+        float sampleZ = (id.z + offsets[i].z) / noiseScale * frequency;
+
+        // Noise function.
+        float perlinValue = 1.0f - abs(snoise(float3(sampleX, sampleY, sampleZ)));
+        perlinValue *= perlinValue;
+        
+        noiseHeight += perlinValue * amplitude;
+        amplitude *= persistence; // Persistence should be between 0 and 1 - amplitude decreases with each octave.
+        frequency *= lacunarity;  // Lacunarity should be greater than 1 - frequency increases with each octave.
+    }
+    
+    // float finalVal = -(id.y + floorOffset) + noise * noiseWeight + (id.y%params.x) * params.y;
+    //
+    // if (pos.y < hardFloor) {
+    //     finalVal += hardFloorWeight;
+    // }
+    
+    terrainHeightMap[id.x] = noiseHeight;
+}

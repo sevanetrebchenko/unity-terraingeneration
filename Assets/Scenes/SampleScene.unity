@@ -153,6 +153,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewer: {fileID: 1974001242}
+  renderer: {fileID: 1958160828}
+  terrainHeightMapComputeShader: {fileID: 7200000, guid: 2931c2e2ff5f78544ad57cf0083e1df0, type: 3}
   chunkSize: 0
   surfaceLevel: 0.5
   terrainColor: {r: 1, g: 1, b: 1, a: 1}
@@ -162,7 +164,7 @@ MonoBehaviour:
   lacunarity: 4
   terrainSeed: 0
   terrainOffset: {x: 0, y: 0, z: 0}
-  terrainSmoothing: 0
+  terrainSmoothing: 1
 --- !u!4 &197580646
 Transform:
   m_ObjectHideFlags: 0
@@ -420,8 +422,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1958160826}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.44, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalPosition: {x: 0, y: 32.11, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -442,13 +444,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: First Person Player
       objectReference: {fileID: 0}
+    - target: {fileID: 7671298108088600389, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.13
+      value: 33.53
       objectReference: {fileID: 0}
     - target: {fileID: 7671298108088600392, guid: 260a04b5cb717264fa7ad1b64acd2f4d, type: 3}
       propertyPath: m_LocalPosition.z
