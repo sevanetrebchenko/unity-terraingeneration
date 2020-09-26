@@ -13,6 +13,7 @@ public class TerrainGenerator : MonoBehaviour
     public Transform viewer;
     public Renderer renderer;
     public ComputeShader terrainHeightMapComputeShader;
+    public AnimationCurve animationCurve;
 
     public int chunkSize = 21;
 
@@ -27,70 +28,49 @@ public class TerrainGenerator : MonoBehaviour
     public bool terrainSmoothing = true;
 
     // PRIVATE
-    private int numChunksPerAxis = 1;
+    private int numChunksPerAxis = 2;
     private int totalNumChunks;
     private int totalChunkSize;
 
     private Dictionary<Vector3Int, TerrainChunk> terrainChunks;
-    private List<TerrainChunk> previousFrameTerrainChunks;
+    private Dictionary<Vector3Int, NativeArray<float>> terrainChunkHeightMaps;
+    private int maximumHeightInChunks;
+    private int minimumHeightInChunks;
+    
     private int shaderKernel;
 
     private void Start()
     {
         chunkSize = 65;
         terrainSeed = 23452345;
-        terrainSmoothing = true;
+        terrainSmoothing = false;
         totalNumChunks = numChunksPerAxis * numChunksPerAxis * numChunksPerAxis * 8;
         totalChunkSize = chunkSize * chunkSize * chunkSize;
-
+        
         terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
-        previousFrameTerrainChunks = new List<TerrainChunk>();
+        terrainChunkHeightMaps = new Dictionary<Vector3Int, NativeArray<float>>();
         shaderKernel = terrainHeightMapComputeShader.FindKernel("TerrainGen");
         
-        // Generate starting chunks
-        Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
-
         NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(totalNumChunks, Allocator.TempJob);
 
         // Generate terrain chunk height maps.
         int counter = 0;
-        for (int y = -0; y < numChunksPerAxis; ++y)
+        for (int z = -numChunksPerAxis; z < numChunksPerAxis; ++z)
         {
-            for (int z = -0; z < numChunksPerAxis; ++z)
+            for (int x = -numChunksPerAxis; x < numChunksPerAxis; ++x)
             {
-                for (int x = -0; x < numChunksPerAxis; ++x)
-                {
-                    Vector3Int chunkPosition = new Vector3Int(x, y, z);
-                    chunkPositions[counter] = chunkPosition;
+                Vector3Int chunkPosition = new Vector3Int(x, 0, z);
 
-                    // Generate chunk height map.
-                    float[,] chunkHeightMap = NoiseMap.GenerateNoiseMap(chunkSize, terrainSeed, noiseScale, 1f, 0.5f, numNoiseOctaves, persistence, lacunarity, chunkPosition * chunkSize);
-                    NativeArray<float> chunkHeightMapArray = new NativeArray<float>(totalChunkSize, Allocator.Persistent);
-                    InitializeHeightMap(chunkHeightMap, chunkHeightMapArray);
-                    
-                    Color[] colorMap = new Color[chunkSize * chunkSize];
+                // Generate chunk height map.
+                float[,] chunkHeightMap = NoiseMap.PerlinNoiseAlgorithm(chunkSize, terrainSeed, noiseScale, 1f, 0.3f, numNoiseOctaves, persistence, lacunarity, chunkPosition * chunkSize);
+                InitializeHeightMap(chunkHeightMap, chunkPosition);
+                
+                // Generate chunk mesh.
+                TerrainChunk terrainChunk = new TerrainChunk(terrainChunkHeightMaps[chunkPosition], chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform);
+                jobHandles[counter] = terrainChunk.Schedule();
+                terrainChunks.Add(chunkPosition, terrainChunk);
 
-                    for (int i = 0; i < chunkSize; ++i)
-                    {
-                        for (int j = 0; j < chunkSize; ++j)
-                        {
-                            colorMap[i + chunkSize * j] = Color.Lerp(Color.white, Color.black, chunkHeightMap[i,j]);
-                        }
-                    }
-        
-                    Texture2D texture = new Texture2D(chunkSize, chunkSize);
-                    texture.SetPixels(colorMap);
-                    texture.Apply();
-        
-                    renderer.sharedMaterial.mainTexture = texture;
-
-                    // Generate chunk mesh.
-                    TerrainChunk terrainChunk = new TerrainChunk(chunkHeightMapArray, chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform);
-                    jobHandles[counter] = terrainChunk.Schedule();
-                    terrainChunks.Add(chunkPosition, terrainChunk);
-
-                    ++counter;
-                }
+                ++counter;
             }
         }
 
@@ -102,54 +82,19 @@ public class TerrainGenerator : MonoBehaviour
         {
             terrainChunkData.Value.ConstructMesh();
         }
-        
+    }
 
+    private void OnDrawGizmos()
+    {
+        foreach (KeyValuePair<Vector3Int, TerrainChunk> chunkData in terrainChunks)
+        {
+            chunkData.Value.OnDrawGizmos();
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.K))
-        {
-            // // Generate starting chunks
-            // Vector3Int[] chunkPositions = new Vector3Int[totalNumChunks];
-            //
-            // NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(totalNumChunks, Allocator.TempJob);
-            //
-            // // Generate terrain chunk height maps.
-            // int counter = 0;
-            // for (int y = -numChunksPerAxis; y < numChunksPerAxis; ++y)
-            // {
-            //     for (int z = -numChunksPerAxis; z < numChunksPerAxis; ++z)
-            //     {
-            //         for (int x = -numChunksPerAxis; x < numChunksPerAxis; ++x)
-            //         {
-            //             Vector3Int chunkPosition = new Vector3Int(x, y, z);
-            //             chunkPositions[counter] = chunkPosition;
-            //
-            //             // Generate chunk height map.
-            //             float[] chunkHeightMap = NoiseMap.GenerateNoiseMap(chunkSize, 2.0f, 0.8f, terrainSeed);
-            //             NativeArray<float> chunkHeightMapArray = new NativeArray<float>(totalChunkSize, Allocator.Persistent);
-            //             InitializeHeightMap(chunkHeightMap, chunkHeightMapArray);
-            //
-            //             // Generate chunk mesh.
-            //             TerrainChunk terrainChunk = new TerrainChunk(chunkHeightMapArray, chunkSize, chunkPosition, surfaceLevel, terrainSmoothing, transform);
-            //             jobHandles[counter] = terrainChunk.Schedule();
-            //             terrainChunks.Add(chunkPosition, terrainChunk);
-            //
-            //             ++counter;
-            //         }
-            //     }
-            // }
-            //
-            // JobHandle.CompleteAll(jobHandles);
-            // jobHandles.Dispose();
-            //
-            // // Build meshes.
-            // foreach (KeyValuePair<Vector3Int, TerrainChunk> terrainChunkData in terrainChunks)
-            // {
-            //     terrainChunkData.Value.ConstructMesh();
-            // }
-        }
+ 
     }
 
     private void OnDestroy()
@@ -160,55 +105,41 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private void InitializeHeightMap(float[,] source, NativeArray<float> destination)
+    // Returns height map for chunk above and below
+    private void InitializeHeightMap(float[,] source, Vector3Int chunkPosition)
     {
+        NativeArray<float> chunkHeightMap = new NativeArray<float>(chunkSize * chunkSize * chunkSize, Allocator.Persistent);
+
+        for (int y = 0; y < chunkSize; ++y)
+        {
+            for (int x = 0; x < chunkSize; ++x)
+            {
+                for (int z = 0; z < chunkSize; ++z)
+                {
+                    chunkHeightMap[x + y * chunkSize * chunkSize + z * chunkSize] = 1;
+                }
+            }
+        }
+
         for (int x = 0; x < chunkSize; ++x)
         {
             for (int z = 0; z < chunkSize; ++z)
             {
-                float value = source[x, z] * chunkSize;
-                int index = z * chunkSize + x;
-                int counter = 0;
+                int noiseHeight = Mathf.FloorToInt(source[x, z] * animationCurve.Evaluate(source[x, z]) * chunkSize);
 
-                // Construct surface.
-                for (int i = 0; i < (int) value; ++i)
+                for (int i = 0; i < noiseHeight && i < chunkSize; ++i)
                 {
-                    if (counter == chunkSize)
-                    {
-                        break;
-                    }
-                    
-                    destination[index] = -1;
-                    index += chunkSize * chunkSize;
-                    ++counter;
-
-                }
-
-                if (counter == chunkSize)
-                {
-                    break;
+                    chunkHeightMap[x + i * chunkSize * chunkSize + z * chunkSize] = -1;
                 }
                 
-                // Reached middle between surface and air.
-                float realValue = value - (int) value;
-                destination[index] = realValue;
-                index += chunkSize * chunkSize;
-                ++counter;
-                
-                // Construct air.
-                for (int i = 0; i < chunkSize - Mathf.CeilToInt(value); ++i)
-                {
-                    if (counter == chunkSize)
-                    {
-                        break;
-                    }
-                    
-                    destination[index] = 1;
-                    index += chunkSize * chunkSize;
-                    ++counter;
-                }
+                // for (int y = 0; y < chunkSize; ++y)
+                // {
+                //     destination[x + y * chunkSize * chunkSize + z * chunkSize] = Mathf.Clamp((y - (source[x, z] * 0.4f) / 3f * chunkSize) / chunkSize + noise.cnoise(new float3(x / 100.0f, y / 100.0f, z / 100.0f)) * .8f, -1, 1);
+                // }
             }
         }
+
+        terrainChunkHeightMaps.Add(chunkPosition, chunkHeightMap);
     }
 
     private float[] GenerateTerrainChunkHeightMap(Vector3Int chunkPosition)

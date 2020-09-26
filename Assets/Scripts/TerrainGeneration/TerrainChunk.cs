@@ -5,7 +5,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using Unity.Burst;
 
-public class TerrainChunk {
+public class TerrainChunk
+{
     // Chunk mesh.
     private GameObject gameObject;
     private MeshFilter meshFilter;
@@ -16,19 +17,19 @@ public class TerrainChunk {
     private float terrainSurfaceLevel;
     private bool terrainSmoothing;
     private int totalNumCubes;
-    private Vector3Int chunkWorldPosition;
+    private Vector3 chunkWorldPosition;
 
     private NativeArray<float3> meshVertices;
     private NativeArray<int> numElementsPerCube;
 
-    public TerrainChunk(NativeArray<float> heightMap, int chunkSize, Vector3Int chunkPosition, float terrainSurfaceLevel, bool terrainSmoothing, Transform parentTransform)
+    public TerrainChunk(NativeArray<float> heightMap, int chunkSize, Vector3 chunkPosition, float terrainSurfaceLevel, bool terrainSmoothing, Transform parentTransform)
     {
         this.chunkSize = chunkSize;
         this.heightMap = heightMap;
         this.terrainSurfaceLevel = terrainSurfaceLevel;
         this.terrainSmoothing = terrainSmoothing;
         totalNumCubes = (chunkSize - 1) * (chunkSize - 1) * (chunkSize - 1);
-
+        
         chunkWorldPosition = chunkPosition * chunkSize;
         
         meshVertices = new NativeArray<float3>(15 * totalNumCubes, Allocator.Persistent);
@@ -58,6 +59,30 @@ public class TerrainChunk {
     public JobHandle Schedule()
     {
         return GenerateTerrainMesh(meshVertices, numElementsPerCube);
+    }
+
+    public void OnDrawGizmos()
+    {
+        for (int y = 0; y < chunkSize; ++y)
+        {
+            for (int x = 0; x < chunkSize; ++x)
+            {
+                for (int z = 0; z < chunkSize; ++z)
+                {
+                    float heightValue = heightMap[x + y * (chunkSize) * (chunkSize) + z * (chunkSize)];
+                    if (heightValue > terrainSurfaceLevel)
+                    {
+                        Gizmos.color = Color.white;
+                    }
+                    else
+                    {
+                        Gizmos.color = Color.black;
+                    }
+                    
+                    Gizmos.DrawSphere(new Vector3(x, y, z), 0.2f);
+                }
+            }
+        }
     }
 
     public void ConstructMesh()
@@ -126,7 +151,7 @@ public class TerrainChunk {
         };
         
         // Each job marches one layer of the chunk.
-        return terrainMeshGenerationJob.Schedule(totalNumCubes, (chunkSize - 1) * (chunkSize - 1));
+        return terrainMeshGenerationJob.Schedule(totalNumCubes, (chunkSize) * (chunkSize));
     }
 
     public void SetLayer(int layer) {
@@ -201,18 +226,9 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
 
                 if (terrainSmoothing) {
                     float edgeVertex1Noise = cubeCornerValues[edgeTable[edgeVertex1Index]];
-                    float edgeVertex2Noise = cubeCornerValues[edgeTable[edgeVertex1Index]];
+                    float edgeVertex2Noise = cubeCornerValues[edgeTable[edgeVertex2Index]];
 
-                    float diff = edgeVertex2Noise - edgeVertex1Noise;
-
-                    if (diff == 0) {
-                        diff = terrainSurfaceLevel;
-                    }
-                    else {
-                        diff = (terrainSurfaceLevel - edgeVertex1Noise) / diff;
-                    }
-
-                    vertexPosition = edgeVertex1 + ((edgeVertex2 - edgeVertex1) * diff);
+                    vertexPosition = Interpolate(edgeVertex1, edgeVertex1Noise, edgeVertex2, edgeVertex2Noise);
                 }
                 else {
                     vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
@@ -231,6 +247,13 @@ public struct TerrainMeshGenerationJob : IJobParallelFor
 
         numElements[index] = numWrittenElements;
         cubeCornerValues.Dispose();
+    }
+
+    float3 Interpolate(float3 vertex1, float vertex1Value, float3 vertex2, float vertex2Value)
+    {
+        float t = (terrainSurfaceLevel - vertex1Value) / (vertex2Value - vertex1Value);
+        float3 vert = vertex1 + t * (vertex2 - vertex1);
+        return vert;
     }
     
     int3 PointFromIndex(int index)
