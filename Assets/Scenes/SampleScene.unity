@@ -159,8 +159,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0
+      time: 0.0014079083
+      value: -0.91588134
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -168,31 +168,40 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.45138678
-      value: 0.30879962
-      inSlope: 1.2264616
-      outSlope: 1.2264616
+      time: 0.10886973
+      value: -0.2670189
+      inSlope: 3.1813478
+      outSlope: 3.1813478
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.18623927
+    - serializedVersion: 3
+      time: 0.45138678
+      value: 0.30879962
+      inSlope: 0.9794826
+      outSlope: 0.9794826
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.35426274
     - serializedVersion: 3
       time: 0.7721353
       value: 0.5385543
-      inSlope: 0.40236494
-      outSlope: 0.40236494
+      inSlope: 1.7208992
+      outSlope: 1.7208992
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.33708408
     - serializedVersion: 3
-      time: 0.9916382
-      value: 0.77594376
-      inSlope: 2
-      outSlope: 2
+      time: 0.98806304
+      value: 0.9818368
+      inSlope: 11.6976595
+      outSlope: 11.6976595
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.08954659
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -200,7 +209,7 @@ MonoBehaviour:
   chunkSize: 0
   surfaceLevel: 0
   terrainColor: {r: 1, g: 1, b: 1, a: 1}
-  noiseScale: 97.45
+  noiseScale: 24.65
   numNoiseOctaves: 6
   persistence: 0.15
   lacunarity: 4

@@ -53,8 +53,8 @@ public static class NoiseMap
                     float sampleX = (float) (x + octaveOffsets[i].x) / noiseScale * frequency;
                     float sampleY = (float) (y + octaveOffsets[i].y) / noiseScale * frequency;
 
-                    // Perlin noise gets the same value each time if the arguments passed are integer values.
-                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
+                    // Get perlin values from -1 to 1
+                    float perlinValue = (Mathf.PerlinNoise(sampleX, sampleY) - 0.5f) * 2f;
                     noiseHeight += perlinValue * amplitude;
 
                     amplitude *= persistence; // Persistence should be between 0 and 1 - amplitude decreases with each octave.
