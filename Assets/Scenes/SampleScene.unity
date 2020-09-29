@@ -209,9 +209,9 @@ MonoBehaviour:
   chunkSize: 0
   surfaceLevel: 0
   terrainColor: {r: 1, g: 1, b: 1, a: 1}
-  noiseScale: 24.65
+  noiseScale: 121.33
   numNoiseOctaves: 6
-  persistence: 0.15
+  persistence: 0.113
   lacunarity: 4
   terrainSeed: 0
   terrainOffset: {x: 0, y: 0, z: 0}

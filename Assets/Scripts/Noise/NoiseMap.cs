@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
 public static class NoiseMap
 {
+    private static Unity.Mathematics.Random newSeededGen;
     private static System.Random seededGenerator;
     private static int chunkSize;
     private static float noiseScale;
@@ -24,12 +26,14 @@ public static class NoiseMap
         NoiseMap.lacunarity = lacunarity;
         float[,] heightMap = new float[chunkSize, chunkSize];
 
-        seededGenerator = new System.Random(mapSeed);
+        // seededGenerator = new System.Random(mapSeed);
+        newSeededGen = new Unity.Mathematics.Random((uint)mapSeed);
+        
         octaveOffsets = new Vector2[numNoiseOctaves];
         for (int i = 0; i < numNoiseOctaves; ++i)
         {
-            float offsetX = seededGenerator.Next(-100000, 100000) + manualOffset.x;
-            float offsetY = seededGenerator.Next(-100000, 100000) + manualOffset.z;
+            float offsetX = newSeededGen.NextFloat(-100000, 100000) + manualOffset.x;
+            float offsetY = newSeededGen.NextFloat(-100000, 100000) + manualOffset.z;
 
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
         }
@@ -69,8 +73,7 @@ public static class NoiseMap
     }
 
 
-    public static float[,] DiamondSquaresAlgorithm(int chunkSize, int mapSeed, float noiseScale, float roughness,
-        float falloff, int numNoiseOctaves, float persistence, float lacunarity, Vector3Int manualOffset)
+    public static float[,] DiamondSquaresAlgorithm(int chunkSize, int mapSeed, float noiseScale, float roughness, float falloff, int numNoiseOctaves, float persistence, float lacunarity, Vector3Int manualOffset)
     {
         // Initialize data.
         NoiseMap.chunkSize = chunkSize;

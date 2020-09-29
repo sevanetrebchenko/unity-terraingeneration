@@ -33,38 +33,69 @@ public class TerrainGenerator : MonoBehaviour
     private int totalChunkSize;
 
     private Dictionary<Vector3Int, TerrainChunk> terrainChunks;
+    private Dictionary<Vector3Int, NativeArray<float>> terrainChunkHeightPlanes; 
     private Dictionary<Vector3Int, NativeArray<float>> terrainChunkHeightMaps;
-    
+
     private int shaderKernel;
 
     private void Start()
     {
         chunkSize = 16;
+        terrainSeed = 124247823;
         terrainSmoothing = false;
 
         totalNumChunks = numChunksPerAxis * numChunksPerAxis * numChunksPerAxis * 8;
         totalChunkSize = chunkSize * chunkSize * chunkSize;
         
         terrainChunks = new Dictionary<Vector3Int, TerrainChunk>();
+        terrainChunkHeightPlanes = new Dictionary<Vector3Int, NativeArray<float>>();
         terrainChunkHeightMaps = new Dictionary<Vector3Int, NativeArray<float>>();
+        
         shaderKernel = terrainHeightMapComputeShader.FindKernel("TerrainGen");
         
         NativeList<JobHandle> jobHandles = new NativeList<JobHandle>(totalNumChunks, Allocator.TempJob);
-
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Generate terrain chunk height maps.
-        int counter = 0;
+        int count = 0;
+        for (int z = -numChunksPerAxis; z < numChunksPerAxis; ++z)
+        {
+            for (int x = -numChunksPerAxis; x < numChunksPerAxis; ++x)
+            {
+                jobHandles.Add(GenerateChunkHeightMap(new Vector3Int(x, 0, z)));
+
+                // // Generate chunk height map.
+                // float[,] chunkHeightMap = NoiseMap.PerlinNoiseAlgorithm(chunkSize, terrainSeed, noiseScale, 1f, 0.3f, numNoiseOctaves, persistence, lacunarity, new Vector3Int(x, 0, z) * chunkSize);
+                // InitializeHeightMap(chunkHeightMap, new Vector3Int(x, 0, z));
+            }
+        }
+        
+        JobHandle.CompleteAll(jobHandles);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Initialize 3D chunk height values.
+        count = 0;
         for (int z = -numChunksPerAxis; z < numChunksPerAxis; ++z)
         {
             for (int x = -numChunksPerAxis; x < numChunksPerAxis; ++x)
             {
                 Vector3Int chunkPosition = new Vector3Int(x, 0, z);
-
-                // Generate chunk height map.
-                float[,] chunkHeightMap = NoiseMap.PerlinNoiseAlgorithm(chunkSize, terrainSeed, noiseScale, 1f, 0.3f, numNoiseOctaves, persistence, lacunarity, chunkPosition * chunkSize);
-                InitializeHeightMap(chunkHeightMap, chunkPosition);
+                InitializeHeightMap(terrainChunkHeightPlanes[chunkPosition], chunkPosition);
             }
         }
+        
+        JobHandle.CompleteAll(jobHandles);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Generate terrain chunks
+        count = 0;
         foreach (KeyValuePair<Vector3Int, NativeArray<float>> chunkHeightMapData in terrainChunkHeightMaps)
         {
             TerrainChunk terrainChunk = new TerrainChunk(chunkHeightMapData.Value, chunkSize, chunkHeightMapData.Key, surfaceLevel, terrainSmoothing, transform);
@@ -75,11 +106,34 @@ public class TerrainGenerator : MonoBehaviour
         JobHandle.CompleteAll(jobHandles);
         jobHandles.Dispose();
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         // Build meshes.
         foreach (KeyValuePair<Vector3Int, TerrainChunk> terrainChunkData in terrainChunks)
         {
             terrainChunkData.Value.ConstructMesh();
         }
+    }
+
+    private JobHandle GenerateChunkHeightMap(Vector3Int chunkPosition)
+    {
+        // Establish the map to write to.
+        terrainChunkHeightPlanes.Add(chunkPosition, new NativeArray<float>(chunkSize * chunkSize, Allocator.TempJob));
+        PerlinNoiseChunkHeightMapJob perlinNoiseChunkHeightMapJob = new PerlinNoiseChunkHeightMapJob
+        {
+            chunkSize = chunkSize,
+            terrainSeed = terrainSeed,
+            numNoiseOctaves = numNoiseOctaves,
+            noiseScale = noiseScale,
+            persistence = persistence,
+            lacunarity = lacunarity,
+            offset = (chunkPosition * chunkSize) + terrainOffset,
+            terrainHeightMap = terrainChunkHeightPlanes[chunkPosition],
+            seededGenerator = new Unity.Mathematics.Random((uint)terrainSeed)
+        };
+
+        return perlinNoiseChunkHeightMapJob.Schedule();
     }
 
     private void OnDrawGizmos()
@@ -102,31 +156,32 @@ public class TerrainGenerator : MonoBehaviour
             terrainChunk.Value.OnDestroy();
         }
         
-        foreach (KeyValuePair<Vector3Int, NativeArray<float>> heightMap in terrainChunkHeightMaps)
+        foreach (KeyValuePair<Vector3Int, NativeArray<float>> heightMap in terrainChunkHeightPlanes)
         {
             heightMap.Value.Dispose();
         }
     }
 
     // Returns height map for chunk above and below
-    private void InitializeHeightMap(float[,] source, Vector3Int chunkPosition)
+    private void InitializeHeightMap(NativeArray<float> source, Vector3Int chunkPosition)
     {
         NativeArray<float> chunkHeightMap = new NativeArray<float>(chunkSize * chunkSize * chunkSize, Allocator.Persistent);
         DefaultConstructNativeArray(chunkHeightMap, 1);
-
+    
         for (int x = 0; x < chunkSize; ++x)
         {
             for (int z = 0; z < chunkSize; ++z)
             {
-                int noiseHeight = Mathf.FloorToInt(source[x, z] * animationCurve.Evaluate(source[x, z]) * 64);
-
+                int index = x + z * chunkSize;
+                int noiseHeight = Mathf.FloorToInt(source[index] * animationCurve.Evaluate(source[index]) * 64);
+    
                 // Create additional chunks in the y direction to accommodate for height differences.
                 // Negative height.
                 if (noiseHeight < 0)
                 {
                     int nextChunkPosition = chunkPosition.y - 1;
                     int numChunks = Mathf.Abs(Mathf.FloorToInt((float)noiseHeight / chunkSize));
-
+    
                     for (int i = 0; i < numChunks; ++i)
                     {
                         Vector3Int newChunkPosition = new Vector3Int(chunkPosition.x, nextChunkPosition--, chunkPosition.z);
@@ -164,7 +219,7 @@ public class TerrainGenerator : MonoBehaviour
                     int nextChunkPosition = chunkPosition.y + 1;
                     // We're building one above this chunk.
                     int numChunks = Mathf.CeilToInt((float)noiseHeight / chunkSize);
-
+    
                     for (int i = 0; i < numChunks; ++i)
                     {
                         Vector3Int newChunkPosition = new Vector3Int(chunkPosition.x, nextChunkPosition++, chunkPosition.z);
@@ -199,7 +254,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
         }
-
+    
         terrainChunkHeightMaps.Add(chunkPosition, chunkHeightMap);
     }
 

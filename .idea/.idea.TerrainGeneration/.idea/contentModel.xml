@@ -29,6 +29,7 @@
             </e>
             <e p="TerrainChunk.cs" t="Include" />
             <e p="TerrainGenerator.cs" t="Include" />
+            <e p="TerrainJobs.cs" t="Include" />
             <e p="UtilityFunctions.cs" t="Include" />
           </e>
         </e>
