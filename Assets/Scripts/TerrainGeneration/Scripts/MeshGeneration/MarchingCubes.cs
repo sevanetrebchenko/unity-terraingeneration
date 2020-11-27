@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using Unity.Collections;
 
-public static class MarchingCubesConfiguration {
+public static class MarchingCubes {
 
     public static readonly NativeArray<int> cornerTable = new NativeArray<int>(24, Allocator.Persistent) {
         // 0

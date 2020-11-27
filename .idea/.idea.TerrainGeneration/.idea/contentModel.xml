@@ -19,18 +19,21 @@
             <e p="PlayerMovement.cs" t="Include" />
           </e>
           <e p="TerrainGeneration" t="Include">
-            <e p="Marching Cubes" t="Include">
-              <e p="MarchingCubesConfiguration.cs" t="Include" />
-              <e p="MarchingCubesMeshGenerator.cs" t="Include" />
+            <e p="Scripts" t="Include">
+              <e p="HeightGeneration" t="Include">
+                <e p="ChunkHeightGenerationJob.cs" t="Include" />
+                <e p="ChunkStackInitializationJob.cs" t="Include" />
+                <e p="DensityValues.cs" t="Include" />
+                <e p="PlaneHeightGenerationJob.cs" t="Include" />
+                <e p="SampledAnimationCurve.cs" t="Include" />
+              </e>
+              <e p="MeshGeneration" t="Include">
+                <e p="MarchingCubes.cs" t="Include" />
+                <e p="MeshGenerationJob.cs" t="Include" />
+              </e>
+              <e p="TerrainChunk.cs" t="Include" />
+              <e p="TerrainGenerator.cs" t="Include" />
             </e>
-            <e p="Mesh Data" t="Include">
-              <e p="Cube.cs" t="Include" />
-              <e p="MeshData.cs" t="Include" />
-            </e>
-            <e p="TerrainChunk.cs" t="Include" />
-            <e p="TerrainGenerator.cs" t="Include" />
-            <e p="TerrainJobs.cs" t="Include" />
-            <e p="UtilityFunctions.cs" t="Include" />
           </e>
         </e>
       </e>
