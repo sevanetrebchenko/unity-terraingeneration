@@ -13,50 +13,51 @@ public class TerrainChunk
     public Vector3Int chunkPosition;
     public NativeArray<float> heightMap;
 
-    private int chunkSize;
+    private int numNodesPerAxis;
+    private int numCubes;
     
     // Components
     private GameObject gameObject;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
-    private MeshRenderer meshRenderer;
 
-    public TerrainChunk(int chunkSize, Vector3Int chunkPosition, NativeArray<float> heightMap, Transform parentTransform)
+    public TerrainChunk(int numNodesPerAxis, int numCubes, Vector3Int chunkPosition, NativeArray<float> heightMap, Transform parentTransform)
     {
-        this.chunkSize = chunkSize;
+        this.numNodesPerAxis = numNodesPerAxis;
+        this.numCubes = numCubes;
         this.chunkPosition = chunkPosition;
         this.heightMap = heightMap;
         
         // Allocate space for mesh components.
         // Each cube can have a maximum of 15 vertices.
-        int totalNumElements = (chunkSize - 1) * (chunkSize - 1) * (chunkSize - 1) * 15;
+        int totalNumElements = numCubes * numCubes * numCubes * 15;
         vertices = new NativeArray<float3>(totalNumElements, Allocator.Persistent);
-        numElements = new NativeArray<int>(1, Allocator.TempJob);
+        numElements = new NativeArray<int>(1, Allocator.Persistent);
 
         // Add components.
         gameObject = new GameObject {
             name = "Terrain Chunk"
         };
-        gameObject.transform.position = chunkPosition * chunkSize;
+        gameObject.transform.position = chunkPosition * numNodesPerAxis;
         gameObject.transform.parent = parentTransform;
         gameObject.isStatic = true;
 
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshCollider = gameObject.AddComponent<MeshCollider>();
-        meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
         SetLayer(8);
     }
 
     public void OnGizmos()
     {
-        for (int x = 0; x < chunkSize; ++x)
+        for (int x = 0; x < numNodesPerAxis; ++x)
         {
-            for (int z = 0; z < chunkSize; ++z)
+            for (int z = 0; z < numNodesPerAxis; ++z)
             {
-                for (int y = 0; y < chunkSize; ++y)
+                for (int y = 0; y < numNodesPerAxis; ++y)
                 {
-                    int index = x + z * chunkSize + y * chunkSize * chunkSize;
+                    int index = x + z * numNodesPerAxis + y * numNodesPerAxis * numNodesPerAxis;
                     float noiseValue = heightMap[index];
                     if (noiseValue > 0.0f)
                     {
@@ -67,7 +68,7 @@ public class TerrainChunk
                         Gizmos.color = Color.white;
                     }
                     
-                    Gizmos.DrawSphere(chunkPosition * chunkSize + new Vector3Int(x, y, z), 0.1f);
+                    Gizmos.DrawSphere(chunkPosition * numNodesPerAxis + new Vector3Int(x, y, z), 0.1f);
                 }
             }
         }
@@ -76,6 +77,8 @@ public class TerrainChunk
     public void OnDestroy()
     {
         heightMap.Dispose();
+        vertices.Dispose();
+        numElements.Dispose();
     }
 
     public void ConstructMesh()

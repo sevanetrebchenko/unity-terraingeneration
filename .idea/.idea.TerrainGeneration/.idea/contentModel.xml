@@ -32,6 +32,7 @@
                 <e p="MeshGenerationJob.cs" t="Include" />
               </e>
               <e p="TerrainChunk.cs" t="Include" />
+              <e p="TerrainChunkConnector.cs" t="Include" />
               <e p="TerrainGenerator.cs" t="Include" />
             </e>
           </e>

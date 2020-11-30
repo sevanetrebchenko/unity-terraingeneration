@@ -8,7 +8,7 @@ using Unity.Mathematics;
 [BurstCompile]
 public struct PlaneHeightGenerationJob : IJob
 {
-    [ReadOnly] public int chunkSize;
+    [ReadOnly] public int numNodesPerAxis;
     [ReadOnly] public int numNoiseOctaves;
     [ReadOnly] public float noiseScale;
     [ReadOnly] public float persistence;
@@ -37,9 +37,9 @@ public struct PlaneHeightGenerationJob : IJob
         }
         
         // Generate perlin noise values in the map.
-        for (int y = 0; y < chunkSize; ++y)
+        for (int y = 0; y < numNodesPerAxis; ++y)
         {
-            for (int x = 0; x < chunkSize; ++x)
+            for (int x = 0; x < numNodesPerAxis; ++x)
             {
                 float amplitude = 1.0f;
                 float frequency = 1.0f;
@@ -67,6 +67,6 @@ public struct PlaneHeightGenerationJob : IJob
 
     private int ExpandIndex(int x, int y)
     {
-        return x + (chunkSize) * y;
+        return x + (numNodesPerAxis) * y;
     }
 }

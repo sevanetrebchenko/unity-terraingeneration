@@ -6,7 +6,7 @@ public struct ChunkHeightGenerationJob : IJob
     public int startingHeight;
     public int stackHeight;
     public float heightMultiplier;
-    public int chunkSize;
+    public int numNodesPerAxis;
 
     [WriteOnly] public NativeArray<float> terrainStackHeightMap;
     
@@ -15,11 +15,11 @@ public struct ChunkHeightGenerationJob : IJob
 
     public void Execute()
     {
-        for (int x = 0; x < chunkSize; ++x)
+        for (int x = 0; x < numNodesPerAxis; ++x)
         {
-            for (int z = 0; z < chunkSize; ++z)
+            for (int z = 0; z < numNodesPerAxis; ++z)
             {
-                int index = x + z * chunkSize;
+                int index = x + z * numNodesPerAxis;
                 float noiseValue = terrainHeightMapPlane[index];
                 int noiseHeight = (int) (noiseValue * sampledAnimationCurve.Evaluate(noiseValue) * heightMultiplier);
 
@@ -35,7 +35,7 @@ public struct ChunkHeightGenerationJob : IJob
                 // Go from the very top of the chunk to the terrain height at that value.
                 for (int y = start; y > end; --y)
                 {
-                    terrainStackHeightMap[x + y * chunkSize * chunkSize + z * chunkSize] = 1;
+                    terrainStackHeightMap[x + y * numNodesPerAxis * numNodesPerAxis + z * numNodesPerAxis] = 1;
                 }
             }
         }

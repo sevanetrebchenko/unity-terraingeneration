@@ -18,18 +18,19 @@ public struct MeshGenerationJob : IJob
     public float terrainSurfaceLevel;
     public bool terrainSmoothing;
 
-    public int chunkSize;
+    public int3 axisDimensionsInCubes;
+    public int3 numNodesPerAxis;
 
     public void Execute()
     {
         NativeArray<float> cubeCornerValues = new NativeArray<float>(8, Allocator.Temp);
 
         int index = 0;
-        for (int x = 0; x < chunkSize - 1; ++x)
+        for (int x = 0; x < axisDimensionsInCubes.x; ++x)
         {
-            for (int z = 0; z < chunkSize - 1; ++z)
+            for (int z = 0; z < axisDimensionsInCubes.z; ++z)
             {
-                for (int y = 0; y < chunkSize - 1; ++y)
+                for (int y = 0; y < axisDimensionsInCubes.y; ++y)
                 {
                     // Construct cube with noise values.
                     int3 normalizedCubePosition = new int3(x, y, z);
@@ -109,7 +110,7 @@ public struct MeshGenerationJob : IJob
 
     int IndexFromCoordinate(int x, int y, int z)
     {
-        return x + z * chunkSize + y * chunkSize * chunkSize;
+        return x + z * numNodesPerAxis.x + y * numNodesPerAxis.x * numNodesPerAxis.z;
     }
 
     int GetCubeConfiguration(NativeArray<float> cubeCornerValues)

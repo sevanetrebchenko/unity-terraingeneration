@@ -6,7 +6,7 @@ using Unity.Mathematics;
 [BurstCompile]
 public struct ChunkStackInitializationJob : IJob
 {
-    [ReadOnly] public int chunkSize;
+    [ReadOnly] public int numNodesPerAxis;
     [ReadOnly] public int3 chunkStackDimensions;
     [ReadOnly] public float heightValue;
     [WriteOnly] public NativeArray<float> heightMap;
@@ -19,7 +19,7 @@ public struct ChunkStackInitializationJob : IJob
             {
                 for (int y = 0; y < chunkStackDimensions.y; ++y)
                 {
-                    heightMap[x + z * chunkSize + y * chunkSize * chunkSize] = heightValue;
+                    heightMap[x + z * numNodesPerAxis + y * numNodesPerAxis * numNodesPerAxis] = heightValue;
                 }
             }
         }

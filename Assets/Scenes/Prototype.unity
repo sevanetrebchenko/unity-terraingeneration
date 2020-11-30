@@ -158,64 +158,73 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.49171448
-      value: -0.21743774
-      inSlope: 0.37342992
-      outSlope: 0.37342992
+      time: -1.0018005
+      value: 0.6323929
+      inSlope: -3.8715124
+      outSlope: -3.8715124
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: -0.36312848
-      value: -0.16941988
-      inSlope: 0.7683372
-      outSlope: 0.7683372
+      time: -0.90458035
+      value: 0.25600374
+      inSlope: -2.5507417
+      outSlope: -2.5507417
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: -0.09602144
-      value: 0.14129092
-      inSlope: 0.33594134
-      outSlope: 0.33594134
+      time: -0.5966398
+      value: -0.1227541
+      inSlope: -0.12936428
+      outSlope: -0.12936428
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.36271942
-      value: -0.08411682
-      inSlope: 0.19730875
-      outSlope: 0.19730875
+      time: -0.27473432
+      value: 0.18989408
+      inSlope: 0.07617709
+      outSlope: 0.07617709
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.65117705
-      value: 0.17145067
-      inSlope: 1.4447198
-      outSlope: 1.4447198
+      time: -0.06974518
+      value: 0.02203095
+      inSlope: 0.3428768
+      outSlope: 0.3428768
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.79359895
-      value: 0.4567873
-      inSlope: 0.7751857
-      outSlope: 0.7751857
+      time: 0.35378325
+      value: 0.6592894
+      inSlope: 0.82284504
+      outSlope: 0.82284504
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.9879761
-      value: 0.3687172
-      inSlope: -0.4530888
-      outSlope: -0.4530888
+      time: 0.87086946
+      value: 0.7322237
+      inSlope: 0.49977532
+      outSlope: 0.49977532
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.1290283
+      value: 0.9538536
+      inSlope: 0.8585021
+      outSlope: 0.8585021
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -223,17 +232,17 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  chunkSize: 20
-  numChunksPerAxis: {x: 2, y: 4, z: 2}
+  numChunksX: 2
+  numChunksZ: 2
   densityValues:
-    surfaceLevel: 0
-    noiseScale: 40
+    surfaceLevel: -0.377
+    noiseScale: 79.4
     numNoiseOctaves: 6
-    persistence: 0.15
-    lacunarity: 4
-    terrainSeed: 277
+    persistence: 0.147
+    lacunarity: 4.25
+    terrainSeed: 1673
     terrainSmoothing: 1
-    heightMultiplier: 64
+    heightMultiplier: 34
 --- !u!4 &197580646
 Transform:
   m_ObjectHideFlags: 0
@@ -401,102 +410,6 @@ LightingSettings:
   m_PVRFilteringAtrousPositionSigmaDirect: 0.5
   m_PVRFilteringAtrousPositionSigmaIndirect: 2
   m_PVRFilteringAtrousPositionSigmaAO: 1
---- !u!1 &1469500843
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1469500846}
-  - component: {fileID: 1469500845}
-  - component: {fileID: 1469500844}
-  - component: {fileID: 1469500847}
-  m_Layer: 8
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!23 &1469500844
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469500843}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 8e2781db1d9f424458e85a7ca8b5458f, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1469500845
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469500843}
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1469500846
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469500843}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 27.31, z: 0}
-  m_LocalScale: {x: 1.47, y: 1, z: 2.4}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &1469500847
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469500843}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &7671298108966803730
 PrefabInstance:
   m_ObjectHideFlags: 0
