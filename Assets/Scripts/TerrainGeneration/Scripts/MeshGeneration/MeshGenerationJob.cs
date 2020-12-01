@@ -52,9 +52,15 @@ public struct MeshGenerationJob : IJob
                     }
 
                     int edgeIndex = 0;
+                    bool breakOut = false;
                     
                     // A configuration has maximum 5 triangles in it.
                     for (int i = 0; i < 5; ++i) {
+                        if (breakOut)
+                        {
+                            break;
+                        }
+                        
                         // A configuration element (triangle) consists of 3 points.
                         for (int j = 0; j < 3; ++j) {
                             int triangleIndex = triangleTable[configuration * 16 + edgeIndex];
@@ -62,6 +68,7 @@ public struct MeshGenerationJob : IJob
                             // Reached the end of this configuration.
                             if (triangleIndex == -1)
                             {
+                                breakOut = true;
                                 break;
                             }
 
@@ -77,17 +84,17 @@ public struct MeshGenerationJob : IJob
                             float3 edgeVertex1 = normalizedCubePosition + corner1;
                             float3 edgeVertex2 = normalizedCubePosition + corner2;
 
-                            float3 vertexPosition;
-
-                            if (terrainSmoothing) {
-                                float edgeVertex1Noise = cubeCornerValues[edgeTable[edgeVertex1Index]];
-                                float edgeVertex2Noise = cubeCornerValues[edgeTable[edgeVertex2Index]];
-
-                                vertexPosition = Interpolate(edgeVertex1, edgeVertex1Noise, edgeVertex2, edgeVertex2Noise);
-                            }
-                            else {
-                                vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
-                            }
+                            float3 vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
+                            //
+                            // if (terrainSmoothing) {
+                            //     float edgeVertex1Noise = cubeCornerValues[edgeTable[edgeVertex1Index]];
+                            //     float edgeVertex2Noise = cubeCornerValues[edgeTable[edgeVertex2Index]];
+                            //
+                            //     vertexPosition = Interpolate(edgeVertex1, edgeVertex1Noise, edgeVertex2, edgeVertex2Noise);
+                            // }
+                            // else {
+                                // vertexPosition = (edgeVertex1 + edgeVertex2) / 2.0f;
+                            // }
 
                             vertices[index++] = vertexPosition;
                             ++edgeIndex;

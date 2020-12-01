@@ -5,42 +5,29 @@ using UnityEngine;
 
 public class TerrainChunkConnector
 {
-    private NativeArray<float> first;
-    private NativeArray<float> second;
-    private NativeArray<float> third;
-    private NativeArray<float> fourth;
-
     private NativeArray<float> combined;
-
     private NativeArray<float3> vertices;
     private NativeArray<int> numElements;
 
     private int chunkSize;
     private Vector3 worldPosition;
-    private int numConnections;
     private int3 numNodesPerAxis;
     private int3 axisDimensionsInCubes;
-    private int totalNumNodes;
-    private int totalNumCubes;
-    
+
     // Components
     private GameObject gameObject;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     
-    // Terrain chunk connector between two chunk sides
-    public TerrainChunkConnector(int numNodesPerAxis, Vector3 worldPosition, NativeArray<float> chunkSide1, NativeArray<float> chunkSide2)
+    
+     public TerrainChunkConnector(int numNodesPerAxis, Vector3 worldPosition, NativeArray<float> chunkSide1)
     {
-        numConnections = 2;
-        first = chunkSide1;
-        second = chunkSide2;
-        
         chunkSize = numNodesPerAxis;
         this.worldPosition = worldPosition;
-        this.numNodesPerAxis = new int3(2, numNodesPerAxis, numNodesPerAxis);
-        totalNumNodes = numNodesPerAxis * numNodesPerAxis * 2; // 2 sides
+        this.numNodesPerAxis = new int3(1, numNodesPerAxis, numNodesPerAxis);
+        int totalNumNodes = numNodesPerAxis * numNodesPerAxis * 1;
         axisDimensionsInCubes = new int3(1, numNodesPerAxis - 1, numNodesPerAxis - 1);
-        totalNumCubes = (numNodesPerAxis - 1) * (numNodesPerAxis - 1) * 2;
+        int totalNumCubes = (numNodesPerAxis - 1) * (numNodesPerAxis - 1) * 2;
         
         combined = new NativeArray<float>(totalNumNodes, Allocator.Persistent);
 
@@ -54,24 +41,13 @@ public class TerrainChunkConnector
                 combined[index] = chunkSide1[mapIndex];
             }
         }
-        
-        // Emplace data from second edge.
-        for (int z = 0; z < this.numNodesPerAxis.z; ++z)
-        {
-            for (int y = 0; y < this.numNodesPerAxis.y; ++y)
-            {
-                int mapIndex = z * this.numNodesPerAxis.y + y;// + this.numNodesPerAxis.z * y;
-                int index = 1 + this.numNodesPerAxis.x * z + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y; // Second edge, needs additional offset into the x.
-                combined[index] = chunkSide2[mapIndex];
-            }
-        }
-        
+
         vertices = new NativeArray<float3>(totalNumCubes * 15, Allocator.Persistent);
         numElements = new NativeArray<int>(1, Allocator.Persistent);
         
         // Add components.
         gameObject = new GameObject {
-            name = "Terrain Chunk"
+            name = "Terrain Connector"
         };
         gameObject.transform.position = worldPosition;
         gameObject.transform.parent = null;
@@ -83,23 +59,123 @@ public class TerrainChunkConnector
         meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
         SetLayer(8);
     }
-
-    public TerrainChunkConnector(int numNodesPerAxis, NativeArray<float> chunkCorner1, NativeArray<float> chunkCorner2, NativeArray<float> chunkCorner3, NativeArray<float> chunkCorner4)
+    
+    
+    
+    // Terrain chunk connector between two chunk sides
+    public TerrainChunkConnector(int numNodesPerAxis, Vector3 worldPosition, Vector3 worldRotation, NativeArray<float> chunkSide1, NativeArray<float> chunkSide2, Transform parentTransform)
     {
-        numConnections = 4;
-        first = chunkCorner1;
-        second = chunkCorner2;
-        third = chunkCorner3;
-        fourth = chunkCorner4;
+        chunkSize = numNodesPerAxis;
+        this.worldPosition = worldPosition;
+        this.numNodesPerAxis = new int3(2, numNodesPerAxis, numNodesPerAxis);
+        int totalNumNodes = numNodesPerAxis * numNodesPerAxis * 2;
+        axisDimensionsInCubes = new int3(1, numNodesPerAxis - 1, numNodesPerAxis - 1);
+        int totalNumCubes = (numNodesPerAxis - 1) * (numNodesPerAxis - 1) * 2;
         
-        this.numNodesPerAxis = new int3(2, numNodesPerAxis, 2);
-        totalNumNodes = numNodesPerAxis * 4; // 4 edges
-        axisDimensionsInCubes = new int3(1, numNodesPerAxis - 1, 1);
-        totalNumCubes = (numNodesPerAxis - 1);
+        combined = new NativeArray<float>(totalNumNodes, Allocator.Persistent);
+
+        // Emplace data from first edge.
+        for (int z = 0; z < this.numNodesPerAxis.z; ++z)
+        {
+            for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+            {
+                int mapIndex = z * this.numNodesPerAxis.y + y;
+                int index = 1 + this.numNodesPerAxis.x * z + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y; // First edge, no additional offset into the x.
+                combined[index] = chunkSide1[mapIndex];
+            }
+        }
         
-        combined = new NativeArray<float>(totalNumNodes, Allocator.Persistent); 
+        // Emplace data from second edge.
+        for (int z = 0; z < this.numNodesPerAxis.z; ++z)
+        {
+            for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+            {
+                int mapIndex = z * this.numNodesPerAxis.y + y;// + this.numNodesPerAxis.z * y;
+                int index = this.numNodesPerAxis.x * z + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y; // Second edge, needs additional offset into the x.
+                combined[index] = chunkSide2[mapIndex];
+            }
+        }
+        
         vertices = new NativeArray<float3>(totalNumCubes * 15, Allocator.Persistent);
         numElements = new NativeArray<int>(1, Allocator.Persistent);
+        
+        // Add components.
+        gameObject = new GameObject {
+            name = "Terrain Connector"
+        };
+        gameObject.transform.position = worldPosition;
+        gameObject.transform.Rotate(worldRotation, Space.Self);
+        gameObject.transform.parent = parentTransform;
+        gameObject.isStatic = true;
+
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshCollider = gameObject.AddComponent<MeshCollider>();
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
+        SetLayer(8);
+    }
+
+    public TerrainChunkConnector(int numNodesPerAxis, Vector3 worldPosition, Vector3 worldRotation,  NativeArray<float> topLeftCorner, NativeArray<float> topRightCorner, NativeArray<float> bottomLeftCorner, NativeArray<float> bottomRightCorner, Transform parentTransform)
+    {
+        chunkSize = numNodesPerAxis;
+        this.worldPosition = worldPosition;
+        this.numNodesPerAxis = new int3(2, numNodesPerAxis, 2);
+        int totalNumNodes = numNodesPerAxis * 4;
+        axisDimensionsInCubes = new int3(1, numNodesPerAxis - 1, 1);
+        int totalNumCubes = (numNodesPerAxis - 1);
+        
+        combined = new NativeArray<float>(totalNumNodes, Allocator.Persistent);
+
+        int mapIndex = 0;
+        
+        // Emplace data from top left corner
+        for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+        {
+            int index = this.numNodesPerAxis.x + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y;
+            combined[index] = topLeftCorner[mapIndex++];
+        }
+        
+        // Emplace data from top right corner.
+        mapIndex = 0;
+        for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+        {
+            int index = 1 + this.numNodesPerAxis.x + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y;
+            combined[index] = topRightCorner[mapIndex++];
+        }
+        
+        // Emplace data from bottom left corner.
+        mapIndex = 0;
+        for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+        {
+            int index = this.numNodesPerAxis.z * this.numNodesPerAxis.x * y;
+            combined[index] = bottomLeftCorner[mapIndex++];
+        }
+        
+        // Emplace data from bottom right corner.
+        mapIndex = 0;
+        for (int y = 0; y < this.numNodesPerAxis.y; ++y)
+        {
+            int index = 1 + this.numNodesPerAxis.z * this.numNodesPerAxis.x * y;
+            combined[index] = bottomRightCorner[mapIndex++];
+        }
+        
+        vertices = new NativeArray<float3>(totalNumCubes * 15, Allocator.Persistent);
+        numElements = new NativeArray<int>(1, Allocator.Persistent);
+        
+        // Add components.
+        gameObject = new GameObject {
+            name = "Terrain Connector"
+        };
+        gameObject.transform.position = worldPosition;
+        gameObject.transform.Rotate(worldRotation, Space.Self);
+        gameObject.transform.parent = parentTransform;
+        gameObject.isStatic = true;
+
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshCollider = gameObject.AddComponent<MeshCollider>();
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Diffuse"));
+        SetLayer(8);
     }
 
     public JobHandle GenerateConnectorMesh()
@@ -157,13 +233,8 @@ public class TerrainChunkConnector
                 {
                     int index = x + numNodesPerAxis.x * z + numNodesPerAxis.z * numNodesPerAxis.x * y;
                     float noiseValue = combined[index];
-
-                    if (noiseValue < 0.0f)
-                    {
-                        Gizmos.color = Color.black;
-                        Gizmos.DrawSphere(worldPosition + new Vector3(x, y, z), 0.1f);
-                    }
-
+                    Gizmos.color = new Color(noiseValue, noiseValue, noiseValue);
+                    Gizmos.DrawSphere(worldPosition + new Vector3(x, y, z), 0.1f);
                 }
             }
         }

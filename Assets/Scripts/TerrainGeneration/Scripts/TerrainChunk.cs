@@ -59,15 +59,8 @@ public class TerrainChunk
                 {
                     int index = x + z * numNodesPerAxis + y * numNodesPerAxis * numNodesPerAxis;
                     float noiseValue = heightMap[index];
-                    if (noiseValue > 0.0f)
-                    {
-                        Gizmos.color = Color.black;
-                    }
-                    else
-                    {
-                        Gizmos.color = Color.white;
-                    }
                     
+                    Gizmos.color = new Color(noiseValue, noiseValue, noiseValue);
                     Gizmos.DrawSphere(chunkPosition * numNodesPerAxis + new Vector3Int(x, y, z), 0.1f);
                 }
             }

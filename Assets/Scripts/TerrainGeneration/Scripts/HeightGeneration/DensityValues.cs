@@ -5,7 +5,7 @@ using UnityEngine;
 public class DensityValues
 {
     [Range(-1.0f, 1.0f)] 
-    public float surfaceLevel = -0.2f;
+    public float surfaceLevel = 0.0f;
     
     [Range(0.0f, 100.0f)]
     public float noiseScale = 1.0f;
