@@ -22,10 +22,6 @@
     <list default="true" id="a292b7d4-feeb-40b4-86c3-1d35b383bb02" name="Default Changelist" comment="Refactored terrain generation to use Unity job system. Brought project state back to place before refactor.">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TerrainGeneration/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Prototype.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Prototype.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/HeightGeneration/DensityValues.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/HeightGeneration/DensityValues.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/MeshGeneration/MeshGenerationJob.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/MeshGeneration/MeshGenerationJob.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainChunk.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainChunk.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainChunkConnector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainChunkConnector.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainGenerator.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -162,7 +158,10 @@
       <workItem from="1606356444948" duration="66131000" />
       <workItem from="1606735454613" duration="11709000" />
       <workItem from="1606796320769" duration="429000" />
-      <workItem from="1606848414245" duration="7040000" />
+      <workItem from="1606848414245" duration="7732000" />
+      <workItem from="1606895647981" duration="4091000" />
+      <workItem from="1606900088380" duration="8389000" />
+      <workItem from="1607507995256" duration="4071000" />
     </task>
     <task id="LOCAL-00001" summary="Refactored terrain generation to use Unity job system. Brought project state back to place before refactor.">
       <created>1606480133866</created>
@@ -306,6 +305,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="881" y="310" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1599791685944" />
+    <state x="1092" y="610" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1607120835892">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1092" y="610" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1400/-2560.0.2560.1400@0.0.2560.1400" timestamp="1607120835892" />
     <state x="606" y="0" width="1970" height="1043" key="dock-window-1" timestamp="1606453554933">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -330,13 +333,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/Assets/Scripts/TerrainGeneration/Scripts/TerrainGenerator.cs</url>
-          <line>360</line>
+          <line>478</line>
           <properties documentPath="C:\Users\sevan\Desktop\Unity\TerrainGeneration\Assets\Scripts\TerrainGeneration\Scripts\TerrainGenerator.cs" initialLine="250">
             <startOffsets>
-              <option value="22449" />
+              <option value="31925" />
             </startOffsets>
             <endOffsets>
-              <option value="22522" />
+              <option value="31998" />
             </endOffsets>
           </properties>
           <option name="timeStamp" value="44" />

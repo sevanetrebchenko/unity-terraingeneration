@@ -37,7 +37,7 @@ public class TerrainGenerator : MonoBehaviour
     {
         numNodesPerAxis = 5;
         numCubes = numNodesPerAxis - 1;
-        numChunksY = 2;
+        numChunksY = 3;
         
         totalNumChunks = numChunksX * numChunksY * numChunksZ;
         totalChunkSize = numNodesPerAxis * numNodesPerAxis * numNodesPerAxis;
@@ -154,8 +154,8 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         // Generate connectors for chunk sides.
                         Vector3 connectorPositionLR = new Vector3(x - 0.5f, y, z);
-                        Vector3 connectorPositionTB = new Vector3(x, y - 0.5f, z);
-                        Vector3 connectorPositionFB = new Vector3(x, y, z - 0.5f);
+                        Vector3 connectorPositionTB = new Vector3(x, y + 0.5f, z);
+                        Vector3 connectorPositionFB = new Vector3(x, y, z + 0.5f);
                         
                         // LEFT/RIGHT
                         if (!terrainChunkConnectors.ContainsKey(connectorPositionLR))
@@ -272,17 +272,19 @@ public class TerrainGenerator : MonoBehaviour
                                     }
                                 }
                                 
-                                TerrainChunkConnector terrainChunkConnector = new TerrainChunkConnector(numNodesPerAxis, new Vector3(x, y, z) * numNodesPerAxis + new Vector3(0.0f, numNodesPerAxis, 0.0f), new Vector3(0.0f, 0.0f, -90.0f), firstHeightMap, secondHeightMap, transform);
+                                TerrainChunkConnector terrainChunkConnector = new TerrainChunkConnector(numNodesPerAxis, new Vector3(x, y + 1, z) * numNodesPerAxis, new Vector3(0.0f, 0.0f, -90.0f), firstHeightMap, secondHeightMap, transform);
                                 terrainChunkConnectors.Add(connectorPositionTB, terrainChunkConnector);
                                 jobHandles.Add(terrainChunkConnector.GenerateConnectorMesh());
                             }
                         }
                         
                         // Generate connectors for chunk corners.
-                        Vector3 connectorPositionTLTRBLBR = new Vector3(x - 0.5f, y, z - 0.5f);
+                        Vector3 connectorPositionCornersAxisY = new Vector3(x - 0.5f, y, z + 0.5f);
+                        Vector3 connectorPositionCornersAxisX = new Vector3(x, y + 0.5f, z + 0.5f);
+                        Vector3 connectorPositionCornersAxisZ = new Vector3(x - 0.5f, y + 0.5f, z);
                         
-                        // TOP LEFT/TOP RIGHT/BOTTOM LEFT/BOTTOM RIGHT
-                        if (!terrainChunkConnectors.ContainsKey(connectorPositionTLTRBLBR))
+                        // 4 CORNERS WITH Y AXIS GOING UP.
+                        if (!terrainChunkConnectors.ContainsKey(connectorPositionCornersAxisY))
                         {
                             Vector3Int topLeft = new Vector3Int(chunkPosition.x - 1, chunkPosition.y, chunkPosition.z + 1);
                             Vector3Int topRight = new Vector3Int(chunkPosition.x, chunkPosition.y, chunkPosition.z + 1);
@@ -334,10 +336,126 @@ public class TerrainGenerator : MonoBehaviour
                                 }
                                 
                                 TerrainChunkConnector terrainChunkConnector = new TerrainChunkConnector(numNodesPerAxis, new Vector3(x, y, z) * numNodesPerAxis + new Vector3(-1.0f, 0.0f, numNodesPerAxis - 1), new Vector3(0.0f, 0.0f, 0.0f), firstHeightMap, secondHeightMap, thirdHeightMap, fourthHeightMap, transform);
-                                terrainChunkConnectors.Add(connectorPositionTLTRBLBR, terrainChunkConnector);
+                                terrainChunkConnectors.Add(connectorPositionCornersAxisY, terrainChunkConnector);
                                 jobHandles.Add(terrainChunkConnector.GenerateConnectorMesh());
                             }
                         }
+                        
+                        // 4 CORNERS WITH X AXIS GOING UP.
+                        if (!terrainChunkConnectors.ContainsKey(connectorPositionCornersAxisX))
+                        {
+                            Vector3Int topLeft = new Vector3Int(chunkPosition.x, chunkPosition.y + 1, chunkPosition.z);
+                            Vector3Int topRight = new Vector3Int(chunkPosition.x, chunkPosition.y + 1, chunkPosition.z + 1);
+                            Vector3Int bottomLeft = new Vector3Int(chunkPosition.x, chunkPosition.y, chunkPosition.z);
+                            Vector3Int bottomRight = new Vector3Int(chunkPosition.x, chunkPosition.y, chunkPosition.z + 1);
+                            
+                            if (terrainChunks.ContainsKey(topLeft) && terrainChunks.ContainsKey(topRight) && terrainChunks.ContainsKey(bottomLeft) && terrainChunks.ContainsKey(bottomRight))
+                            {
+                                // Top wall of this chunk, bottom wall of other chunk.
+                                TerrainChunk topLeftChunk = terrainChunks[topLeft];
+                                TerrainChunk topRightChunk = terrainChunks[topRight];
+                                TerrainChunk bottomLeftChunk = terrainChunks[bottomLeft];
+                                TerrainChunk bottomRightChunk = terrainChunks[bottomRight];
+                            
+                                // Bottom right corner of top left chunk
+                                NativeArray<float> firstHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                                int index = 0;
+                                for (int i = 0; i < numNodesPerAxis; ++i) // x
+                                {
+                                    int chunkIndex = i + (numNodesPerAxis - 1) * numNodesPerAxis;
+                                    firstHeightMap[index++] = topLeftChunk.heightMap[chunkIndex];
+                                }
+                                    
+                                // Bottom left corner of top right chunk
+                                NativeArray<float> secondHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                                index = 0;
+                                for (int i = 0; i < numNodesPerAxis; ++i) // x
+                                {
+                                    int chunkIndex = i;
+                                    secondHeightMap[index++] = topRightChunk.heightMap[chunkIndex];
+                                }
+                                
+                                // Top right corner of bottom left chunk
+                                NativeArray<float> thirdHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                                index = 0;
+                                for (int i = 0; i < numNodesPerAxis; ++i) // x
+                                {
+                                    int chunkIndex = i + (numNodesPerAxis - 1) * numNodesPerAxis + (numNodesPerAxis - 1) * numNodesPerAxis * numNodesPerAxis;
+                                    thirdHeightMap[index++] = bottomLeftChunk.heightMap[chunkIndex];
+                                }
+                                
+                                // Top left corner of bottom right chunk
+                                NativeArray<float> fourthHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                                index = 0;
+                                for (int i = 0; i < numNodesPerAxis; ++i) // x
+                                {
+                                    int chunkIndex = i + (numNodesPerAxis - 1) * numNodesPerAxis * numNodesPerAxis;
+                                    fourthHeightMap[index++] = bottomRightChunk.heightMap[chunkIndex];
+                                }
+                                
+                                TerrainChunkConnector terrainChunkConnector = new TerrainChunkConnector(numNodesPerAxis, new Vector3(x, y, z) * numNodesPerAxis + new Vector3(-1.0f, numNodesPerAxis, numNodesPerAxis - 1.0f), new Vector3(0.0f, 90.0f,  270.0f), firstHeightMap, secondHeightMap, thirdHeightMap, fourthHeightMap, transform);
+                                terrainChunkConnectors.Add(connectorPositionCornersAxisX, terrainChunkConnector);
+                                jobHandles.Add(terrainChunkConnector.GenerateConnectorMesh());
+                            }
+                        }
+                        
+                        // // 4 CORNERS WITH Z AXIS GOING UP.
+                        // if (!terrainChunkConnectors.ContainsKey(connectorPositionCornersAxisZ))
+                        // {
+                        //     Vector3Int topLeft = new Vector3Int(chunkPosition.x, chunkPosition.y + 1, chunkPosition.z);
+                        //     Vector3Int topRight = new Vector3Int(chunkPosition.x - 1, chunkPosition.y + 1, chunkPosition.z);
+                        //     Vector3Int bottomLeft = new Vector3Int(chunkPosition.x, chunkPosition.y, chunkPosition.z);
+                        //     Vector3Int bottomRight = new Vector3Int(chunkPosition.x - 1, chunkPosition.y, chunkPosition.z);
+                        //     
+                        //     if (terrainChunks.ContainsKey(topLeft) && terrainChunks.ContainsKey(topRight) && terrainChunks.ContainsKey(bottomLeft) && terrainChunks.ContainsKey(bottomRight))
+                        //     {
+                        //         // Top wall of this chunk, bottom wall of other chunk.
+                        //         TerrainChunk topLeftChunk = terrainChunks[topLeft];
+                        //         TerrainChunk topRightChunk = terrainChunks[topRight];
+                        //         TerrainChunk bottomLeftChunk = terrainChunks[bottomLeft];
+                        //         TerrainChunk bottomRightChunk = terrainChunks[bottomRight];
+                        //     
+                        //         // Bottom right corner of top left chunk
+                        //         NativeArray<float> firstHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                        //         int index = 0;
+                        //         for (int i = 0; i < numNodesPerAxis; ++i) // z
+                        //         {
+                        //             int chunkIndex = (numNodesPerAxis - 1) + i * numNodesPerAxis;
+                        //             firstHeightMap[index++] = topLeftChunk.heightMap[chunkIndex];
+                        //         }
+                        //             
+                        //         // Bottom left corner of top right chunk
+                        //         NativeArray<float> secondHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                        //         index = 0;
+                        //         for (int i = 0; i < numNodesPerAxis; ++i) // z
+                        //         {
+                        //             int chunkIndex = i * numNodesPerAxis;
+                        //             secondHeightMap[index++] = topRightChunk.heightMap[chunkIndex];
+                        //         }
+                        //         
+                        //         // Top right corner of bottom left chunk
+                        //         NativeArray<float> thirdHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                        //         index = 0;
+                        //         for (int i = 0; i < numNodesPerAxis; ++i) // z
+                        //         {
+                        //             int chunkIndex = (numNodesPerAxis - 1) + i * numNodesPerAxis + (numNodesPerAxis - 1) * numNodesPerAxis * numNodesPerAxis;
+                        //             thirdHeightMap[index++] = bottomLeftChunk.heightMap[chunkIndex];
+                        //         }
+                        //         
+                        //         // Top left corner of bottom right chunk
+                        //         NativeArray<float> fourthHeightMap = new NativeArray<float>(numNodesPerAxis, Allocator.Persistent);
+                        //         index = 0;
+                        //         for (int i = 0; i < numNodesPerAxis; ++i) // z
+                        //         {
+                        //             int chunkIndex = i * numNodesPerAxis + (numNodesPerAxis - 1) * numNodesPerAxis * numNodesPerAxis;
+                        //             fourthHeightMap[index++] = bottomRightChunk.heightMap[chunkIndex];
+                        //         }
+                        //         
+                        //         TerrainChunkConnector terrainChunkConnector = new TerrainChunkConnector(numNodesPerAxis, new Vector3(x, y, z) * numNodesPerAxis + new Vector3(-1.0f,  numNodesPerAxis - 1.0f, 0.0f), new Vector3(0.0f, 90.0f, 90.0f), firstHeightMap, secondHeightMap, thirdHeightMap, fourthHeightMap, transform);
+                        //         terrainChunkConnectors.Add(connectorPositionCornersAxisZ, terrainChunkConnector);
+                        //         jobHandles.Add(terrainChunkConnector.GenerateConnectorMesh());
+                        //     }
+                        // }
                     }
                 }
             }

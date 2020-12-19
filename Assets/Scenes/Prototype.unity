@@ -232,17 +232,17 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  numChunksX: 4
-  numChunksZ: 4
+  numChunksX: 12
+  numChunksZ: 12
   densityValues:
-    surfaceLevel: -0.377
+    surfaceLevel: 0
     noiseScale: 79.4
     numNoiseOctaves: 6
     persistence: 0.147
     lacunarity: 4.25
-    terrainSeed: 1673
+    terrainSeed: 41234324
     terrainSmoothing: 0
-    heightMultiplier: 28
+    heightMultiplier: 66
 --- !u!4 &197580646
 Transform:
   m_ObjectHideFlags: 0
